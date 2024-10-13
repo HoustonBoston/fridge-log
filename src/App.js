@@ -1,24 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import * as React from 'react';
+import dayjs from 'dayjs';
+import { Box, TextField } from '@mui/material';
+import { DateField, LocalizationProvider, } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function App() {
   return (
-    <div className="App">
+    <Box className="App" sx={{
+      alignItems: "center",
+      display: "flex",
+      justifyContent: "center",
+      height:"100px"
+    }}>
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <Box>
+          <TextField label="Item name" variant='outlined'/>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateField sx={{marginLeft:"10px"}} defaultValue={dayjs(new Date())} label="Date purchased" />
+          </LocalizationProvider>
+        </Box>
       </header>
-    </div>
+    </Box>
   );
 }
 
