@@ -1,6 +1,7 @@
 {
   "name": "fridge-log",
   "version": "0.1.0",
+  "main":"src/app/page.js",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.13.3",
