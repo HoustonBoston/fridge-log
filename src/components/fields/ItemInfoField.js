@@ -14,7 +14,6 @@ export default function ItemInfoField() {
 
   return (
     <Box className="App" sx={{
-      alignItems: "center",
       display: "flex",
       justifyContent: "center",
       height: "100px"
