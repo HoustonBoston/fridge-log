@@ -4,16 +4,21 @@ import ItemInfoField from './components/fields/ItemInfoField';
 import AddItemButton from './components/buttons/AddItemButton';
 import { Box } from '@mui/material';
 
-import {initialTasks} from './local-data/initialData.js'
+import { initialTasks } from './local-data/initialData.js'
+import dayjs from "dayjs";
 const root = ReactDOM.createRoot(document.getElementById('root'))
 
 
-function App() {
+function App ()
+{
     const [fridgeItems, setFridgeItems] = useState(initialTasks)
 
-    const handleAddItem = () => {
+    const handleAddItem = () =>
+    {
         const item = {
-            "item_id": 2
+            item_id: 3,
+            expiry_date: dayjs().hour(12),
+            purchase_date: dayjs().hour(12)
         }
         setFridgeItems([...fridgeItems, item])
     }
@@ -30,14 +35,17 @@ function App() {
                     <AddItemButton handleAddItem={() => handleAddItem()} />
                 </Box>
             </Box>
+            <Box>
                 {
-                    fridgeItems.map((item, index) => {
+                    fridgeItems.map((item, index) =>
+                    {
                         return (
                             <ItemInfoField key={item.item_id} fridge_item={item} />
                         )
                     }
                     )
                 }
+            </Box>
         </>
     )
 }
