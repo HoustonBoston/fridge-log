@@ -35,7 +35,11 @@ function App ()
                     <AddItemButton handleAddItem={() => handleAddItem()} />
                 </Box>
             </Box>
-            <Box>
+            <Box sx={{
+                flexDirection: 'column',    // Stack items vertically
+                alignItems: 'flex-start',   // Align items at the start of the container
+            }}
+            >
                 {
                     fridgeItems.map((item, index) =>
                     {
@@ -45,7 +49,7 @@ function App ()
                     }
                     )
                 }
-            </Box>
+            </Box >
         </>
     )
 }
