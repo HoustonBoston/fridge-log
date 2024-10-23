@@ -16,7 +16,7 @@ function App ()
     const handleAddItem = () =>
     {
         const item = {
-            item_id: 3,
+            item_id: 2,
             expiry_date: dayjs().hour(12),
             purchase_date: dayjs().hour(12)
         }
