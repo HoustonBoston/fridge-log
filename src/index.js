@@ -28,8 +28,9 @@ function App() {
         }
     }
 
-    const callPutItemApi = async () => {
-        const apiUrl = `http://127.0.0.1:8080/PutToDDB/putItem?item_name=${item_name}&date_purchased_epoch_dayjs=${date_purchased}&expiry_date_epoch_dayjs=${expiry_date_epoch_dayjs}`
+    const callPutItemApi = async (item) => {
+        ({expiry_date, purchase_date}) = item
+        const apiUrl = `http://127.0.0.1:8080/PutToDDB/putItem?item_name=${item_name}&date_purchased_epoch_dayjs=${date_purchased}&expiry_date_epoch_dayjs=${expiry_date}`
         console.log('trying to call API')
 
         try {
@@ -48,6 +49,10 @@ function App() {
             purchase_date: dayjs().hour(12)
         }
         setFridgeItems([...fridgeItems, item])
+    }
+
+    const handleUpdateItem = () => {
+        
     }
 
     const handleDeleteItem = (id) => {
