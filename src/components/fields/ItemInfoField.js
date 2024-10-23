@@ -26,10 +26,10 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem }) {
         </IconButton>
         <TextField defaultValue={item_name} label="Item name" variant='outlined' />
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateField sx={{ marginLeft: "10px" }} defaultValue={(purchase_date).hour(12)} label="Date purchased" />
+          <DateField sx={{ marginLeft: "10px" }} defaultValue={purchase_date.hour(12)} label="Date purchased" />
         </LocalizationProvider>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateField sx={{ marginLeft: "10px" }} defaultValue={(expiry_date).hour(12)} label="Expiry date" onChange={(value) => handleExpiryDateChange(value)} />
+          <DateField sx={{ marginLeft: "10px" }} defaultValue={expiry_date.hour(12)} label="Expiry date" onChange={(value) => handleExpiryDateChange(value)} />
         </LocalizationProvider>
         <Typography sx={{ marginLeft: "10px", display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
           Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
