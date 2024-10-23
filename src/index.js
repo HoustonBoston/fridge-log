@@ -23,6 +23,10 @@ function App ()
         setFridgeItems([...fridgeItems, item])
     }
 
+    const handleDeleteItem = () => {
+        
+    }
+
     return (
         <>
 
