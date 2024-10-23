@@ -23,6 +23,10 @@ function App ()
         setFridgeItems([...fridgeItems, item])
     }
 
+    const handleDeleteItem = (id) => {
+        setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
+    }
+
     return (
         <>
 
@@ -44,7 +48,7 @@ function App ()
                     fridgeItems.map((item, index) =>
                     {
                         return (
-                            <ItemInfoField key={item.item_id} fridge_item={item} />
+                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)}/>
                         )
                     }
                     )
