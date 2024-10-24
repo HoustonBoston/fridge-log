@@ -51,10 +51,15 @@ function App() {
         setFridgeItems([...fridgeItems, item])
     }
 
+<<<<<<< HEAD
     const handleUpdateItem = () => {
         
     }
 
+=======
+    const handleDeleteItem = () => {
+        
+>>>>>>> 64981bb9b8966d8f2e7a9f545fae587145935f91
     const handleDeleteItem = (id) => {
         setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
     }
