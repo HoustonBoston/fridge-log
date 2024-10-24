@@ -29,7 +29,7 @@ function App() {
     }
 
     const callPutItemApi = async (item) => {
-        ({expiry_date, purchase_date}) = item
+        ({ expiry_date, purchase_date }) = item
         const apiUrl = `http://127.0.0.1:8080/PutToDDB/putItem?item_name=${item_name}&date_purchased_epoch_dayjs=${date_purchased}&expiry_date_epoch_dayjs=${expiry_date}`
         console.log('trying to call API')
 
@@ -51,47 +51,45 @@ function App() {
         setFridgeItems([...fridgeItems, item])
     }
 
-<<<<<<< HEAD
     const handleUpdateItem = () => {
-        
+
     }
 
-=======
     const handleDeleteItem = () => {
-        
->>>>>>> 64981bb9b8966d8f2e7a9f545fae587145935f91
-    const handleDeleteItem = (id) => {
-        setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
-    }
 
-    return (
-        <>
+        const handleDeleteItem = (id) => {
+            setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
+        }
 
-            <Box sx={{
-                display: 'flex',            // Use flexbox for layout
-                justifyContent: 'center',   // Center the entire layout horizontally
-                alignItems: 'center',       // Align items vertically
-            }}>
-                <Box>
-                    <AddItemButton handleAddItem={() => handleAddItem()} />
+        return (
+            <>
+
+                <Box sx={{
+                    display: 'flex',            // Use flexbox for layout
+                    justifyContent: 'center',   // Center the entire layout horizontally
+                    alignItems: 'center',       // Align items vertically
+                }}>
+                    <Box>
+                        <AddItemButton handleAddItem={() => handleAddItem()} />
+                    </Box>
                 </Box>
-            </Box>
-            <Box sx={{
-                flexDirection: 'column',    // Stack items vertically
-                alignItems: 'flex-start',   // Align items at the start of the container
-            }}
-            >
-                {
-                    fridgeItems.map((item, index) => {
-                        return (
-                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)} />
+                <Box sx={{
+                    flexDirection: 'column',    // Stack items vertically
+                    alignItems: 'flex-start',   // Align items at the start of the container
+                }}
+                >
+                    {
+                        fridgeItems.map((item, index) => {
+                            return (
+                                <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)} />
+                            )
+                        }
                         )
                     }
-                    )
-                }
-            </Box >
-        </>
-    )
+                </Box >
+            </>
+        )
+    }
 }
 
 root.render(
