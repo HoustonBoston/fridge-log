@@ -1,5 +1,5 @@
 import * as React from 'react';
-import dayjs, { unix } from 'dayjs';
+import dayjs from 'dayjs';
 import { Box, IconButton, TextField, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete'
 import { DateField, LocalizationProvider, } from '@mui/x-date-pickers';
@@ -8,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 export default function ItemInfoField({ fridge_item, handleDeleteItem }) {
   const { item_id, item_name, expiry_date, purchase_date } = fridge_item
   const [expiryDate, setExpiryDate] = React.useState((expiry_date).hour(12)) // expiryDate is now a dayjs object
+
   const handleExpiryDateChange = (value) => {
     if (value !== NaN && value !== null) {
       setExpiryDate(dayjs(value).startOf('day'))

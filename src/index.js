@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client'
 import ItemInfoField from './components/fields/ItemInfoField';
 import AddItemButton from './components/buttons/AddItemButton';
@@ -13,32 +13,36 @@ function App() {
     const [fridgeItems, setFridgeItems] = useState(initialTasks)
 
     const callFetchItemsApi = async () => {
-        const apiUrl = "http://127.0.0.1:8080/ReadFromDDB/items"
+        const apiUrl = "http://127.0.0.1:8080/ReadFromDDB/items" //api gw url
         console.log('trying to call API')
 
         try {
             const res = await fetch(apiUrl, {
                 method: 'GET',
-                headers: {
-
-                }
             })
         } catch (error) {
             console.log(error)
         }
     }
 
+    useEffect(() => callFetchItemsApi(), []) // when updating 
+
     const callPutItemApi = async (item) => {
-        ({ expiry_date, purchase_date }) = item
-        const apiUrl = `http://127.0.0.1:8080/PutToDDB/putItem?item_name=${item_name}&date_purchased_epoch_dayjs=${date_purchased}&expiry_date_epoch_dayjs=${expiry_date}`
+        const { item_name, item_id, expiry_date, purchase_date } = item
+        const apiUrl = `http://127.0.0.1:8080/PutToDDB/putItem?item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}`
         console.log('trying to call API')
 
         try {
             const res = await fetch(apiUrl, {
                 method: 'POST',
             })
+
+            if (res.ok) {
+                setFridgeItems(res)
+            } else console.log('API call failed')
+
         } catch (error) {
-            console.log(error)
+            console.log('catching callPutItemApi error:', error)
         }
     }
 
@@ -48,6 +52,9 @@ function App() {
             expiry_date: dayjs().hour(12),
             purchase_date: dayjs().hour(12)
         }
+        callPutItemApi(item)
+        
+        console.log('expiry date of item:', item.expiry_date)
         setFridgeItems([...fridgeItems, item])
     }
 
