@@ -6,12 +6,12 @@ import { Box } from '@mui/material';
 
 import { initialTasks } from './local-data/initialData.js'
 import dayjs from "dayjs";
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'))
-
-
 function App ()
 {
-    const [fridgeItems, setFridgeItems] = useState(initialTasks)
+    const [fridgeItems, setFridgeItems] = useState([])
 
     const callFetchItemsApi = async () =>
     {
@@ -21,14 +21,23 @@ function App ()
         try {
             const res = await fetch(apiUrl, {
                 method: 'GET',
-                
             })
+            if (res.ok)
+               console.log('respose received:',res)
+            else console.error('API call failed')
         } catch (error) {
             console.log(error)
         }
     }
 
-    useEffect(() => callFetchItemsApi(), []) // when updating 
+    useEffect(() =>
+    {
+        const fetchData = async () =>
+        {
+            await callFetchItemsApi()
+        }
+        fetchData()
+    }, []) // when updating 
 
     const callPutItemApi = async (item) =>
     {
@@ -40,11 +49,9 @@ function App ()
             const res = await fetch(apiUrl, {
                 method: 'POST',
             })
-
-            if (res.ok) {
-                setFridgeItems(res)
-            } else console.log('API call failed')
-
+            if(res.ok)
+                console.log('OK response from callPutItemApi', res)
+            else console.error('callPutItemApi error', res)
         } catch (error) {
             console.log('catching callPutItemApi error:', error)
         }
@@ -53,14 +60,13 @@ function App ()
     const handleAddItem = () =>
     {
         const item = {
-            item_id: 3,
+            item_name: "",
             expiry_date: dayjs().hour(12),
             purchase_date: dayjs().hour(12)
         }
         callPutItemApi(item)
 
         console.log('expiry date of item:', item.expiry_date)
-        setFridgeItems([...fridgeItems, item])
     }
 
     const handleUpdateItem = () =>
@@ -68,44 +74,42 @@ function App ()
 
     }
 
-    const handleDeleteItem = () =>
+    const handleDeleteItem = (id) =>
     {
+        setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
+    }
 
-        const handleDeleteItem = (id) =>
-        {
-            setFridgeItems(fridgeItems.filter((item) => item.item_id != id));
-        }
+    return (
+        <>
 
-        return (
-            <>
-
-                <Box sx={{
-                    display: 'flex',            // Use flexbox for layout
-                    justifyContent: 'center',   // Center the entire layout horizontally
-                    alignItems: 'center',       // Align items vertically
-                }}>
-                    <Box>
-                        <AddItemButton handleAddItem={() => handleAddItem()} />
-                    </Box>
+            <Box sx={{
+                display: 'flex',            // Use flexbox for layout
+                justifyContent: 'center',   // Center the entire layout horizontally
+                alignItems: 'center',       // Align items vertically
+            }}>
+                <Box>
+                    {console.log('adding add item button')}
+                    <AddItemButton handleAddItem={() => handleAddItem()} />
                 </Box>
-                <Box sx={{
-                    flexDirection: 'column',    // Stack items vertically
-                    alignItems: 'flex-start',   // Align items at the start of the container
-                }}
-                >
+            </Box>
+            <Box sx={{
+                flexDirection: 'column',    // Stack items vertically
+                alignItems: 'flex-start',   // Align items at the start of the container
+            }}
+            >
+                {
+                    fridgeItems.map((item, index) =>
                     {
-                        fridgeItems.map((item, index) =>
-                        {
-                            return (
-                                <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)} />
-                            )
-                        }
+                        return (
+                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)} />
                         )
                     }
-                </Box >
-            </>
-        )
-    }
+                    )
+                }
+            </Box >
+        </>
+    )
+
 }
 
 root.render(
