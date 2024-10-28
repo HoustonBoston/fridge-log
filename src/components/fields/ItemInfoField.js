@@ -36,7 +36,7 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
         <IconButton onClick={() => handleDeleteItem()} color='blue'>
           <DeleteIcon color='blue' />
         </IconButton>
-        <TextField defaultValue={item_name} label="Item name" variant='outlined' onChange={handleItemNameChange} />
+        <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange}/>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateField sx={{ marginLeft: "10px" }} defaultValue={dayjs(date_purchased_epoch_dayjs).hour(12)} label="Date purchased" />
         </LocalizationProvider>
