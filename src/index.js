@@ -49,8 +49,9 @@ function App ()
 
     const callPutItemApi = async (item) =>
     {
-        const { item_id, item_name, expiry_date, purchase_date } = item
-        const apiUrl = `http://127.0.0.1:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}`
+        const { item_id, item_name, expiry_date, purchase_date, timestamp } = item
+        console.log('purchase date in callPutItemApi', purchase_date)
+        const apiUrl = `http://127.0.0.1:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -66,28 +67,30 @@ function App ()
         }
     }
 
-    const handleAddItem = () =>
+    const handleAddItem = async () => // send dates as unix!!
     {
+        const currentDate = dayjs().hour(12)
         const item = {
             item_id: uuidv4(),
             item_name: "",
-            expiry_date: dayjs().hour(12),
-            purchase_date: dayjs().hour(12)
+            expiry_date: currentDate.unix(),
+            purchase_date: currentDate.unix(),
+            timestamp: dayjs().unix()
         }
-        console.log('item.expiry_date', item.expiry_date)
-        callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
+        console.log('adding new item', item)
+        await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
         console.log('fridge items after adding item', fridgeItems)
-        console.log('expiry date of item:', item.expiry_date)
     }
 
     const handleUpdateItem = (item_to_update) =>
     {
-        const { item_id, item_name, expiry_date, purchase_date } = item_to_update
+        const { item_id, item_name, expiry_date, purchase_date, timestamp } = item_to_update
         const updated_item = {
             item_id: item_id,
             item_name: item_name,
             expiry_date: expiry_date,
-            purchase_date: purchase_date
+            purchase_date: purchase_date,
+            timestamp: timestamp
         }
         console.log('calling update item')
 
@@ -98,9 +101,9 @@ function App ()
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id) =>
+    const handleDeleteItem = async (id, timestamp) =>
     {
-        const apiUrl = `http://127.0.0.1:8080/DeleteItem/item/${id}`
+        const apiUrl = `http://127.0.0.1:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
         try {
@@ -138,7 +141,7 @@ function App ()
                     fridgeItems.map((item, index) =>
                     {
                         return (
-                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id)} handleUpdateItem={handleUpdateItem}/>
+                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)} handleUpdateItem={handleUpdateItem}/>
                         )
                     }
                     )
