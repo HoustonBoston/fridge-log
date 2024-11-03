@@ -15,7 +15,7 @@ function App ()
 
     const callFetchItemsApi = async () =>
     {
-        const apiUrl = "http://192.168.1.14:8080/ReadFromDDB/items" //api gw url
+        const apiUrl = "http://192.168.1.14:8080/ReadFromDDB/items" //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
         try {
