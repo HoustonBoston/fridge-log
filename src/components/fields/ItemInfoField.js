@@ -24,7 +24,7 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
     console.log('value in handleExpiryDateChange', value)
     if (dayjs.isDayjs(value)) {
       const updatedItem = { ...fridge_item, expiry_date: value.hour(12).unix() }
-      //handleUpdateItem(updatedItem)
+      handleUpdateItem(updatedItem)
       setExpiryDate(dayjs(value).hour(12))
     }
   }

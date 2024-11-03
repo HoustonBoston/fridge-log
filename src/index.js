@@ -5,7 +5,6 @@ import ItemInfoField from './components/fields/ItemInfoField';
 import AddItemButton from './components/buttons/AddItemButton';
 import { Box } from '@mui/material';
 
-import { initialTasks } from './local-data/initialData.js'
 import dayjs from "dayjs";
 
 
@@ -16,13 +15,15 @@ function App ()
 
     const callFetchItemsApi = async () =>
     {
-        const apiUrl = "http://127.0.0.1:8080/ReadFromDDB/items" //api gw url
+        const apiUrl = "http://192.168.1.14:8080/ReadFromDDB/items" //api gw url
         console.log('trying to call fetch items API')
 
         try {
+            console.log('inside try')
             const res = await fetch(apiUrl, {
                 method: 'GET',
             })
+            console.log('after invoking try')
             if (res.ok) {
                 const data = await res.json()
                 console.log('OK respose received from callFetchItemsApi:', res)
@@ -33,17 +34,18 @@ function App ()
             }
             else console.error('API call failed')
         } catch (error) {
-            console.log(error)
+            console.log('error after fetch', error)
         }
     }
 
     useEffect(() =>
     {
+        console.log('use effect')
         const fetchData = async () =>
         {
+            console.log('trying to fetch data')
             await callFetchItemsApi()
         }
-        console.log('use effect')
         fetchData()
     }, []) // when updating. Depends on fridgeItems
 
@@ -51,7 +53,7 @@ function App ()
     {
         const { item_id, item_name, expiry_date, purchase_date, timestamp } = item
         console.log('purchase date in callPutItemApi', purchase_date)
-        const apiUrl = `http://127.0.0.1:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
+        const apiUrl = `http://192.168.1.14:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -95,7 +97,7 @@ function App ()
         console.log('calling update item')
 
         setFridgeItems((prevItems) => prevItems.map((item) => item.item_id === item_id ? updated_item : item))
-        
+
         callPutItemApi(updated_item)
 
         console.log('fridge items after updating item', fridgeItems)
@@ -103,7 +105,7 @@ function App ()
 
     const handleDeleteItem = async (id, timestamp) =>
     {
-        const apiUrl = `http://127.0.0.1:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
+        const apiUrl = `http://192.168.1.14:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
         try {
@@ -141,7 +143,7 @@ function App ()
                     fridgeItems.map((item, index) =>
                     {
                         return (
-                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)} handleUpdateItem={handleUpdateItem}/>
+                            <ItemInfoField key={item.item_id} fridge_item={item} handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)} handleUpdateItem={handleUpdateItem} />
                         )
                     }
                     )
