@@ -48,21 +48,25 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
       {
         isMobile ?
           <>
-            <Box>
+            <Box sx={{display:'flex', alignItems:'center', flexDirection:'row'}}>
               <IconButton onClick={() => handleDeleteItem()} color='blue'>
                 <DeleteIcon color='blue' />
               </IconButton>
-
               <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
+            </Box>
 
+            <Box sx={{ paddingTop: '2%' }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ marginLeft: "10px" }} defaultValue={datePurchased} label="Date purchased" />
+                <DateField sx={{ paddingTop: '2%' }} defaultValue={datePurchased} label="Date purchased" />
               </LocalizationProvider>
+            </Box>
 
+            <Box sx={{ paddingTop: '2%' }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ marginLeft: "10px" }} value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
+                <DateField sx={{ paddingTop: '2%' }} value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
               </LocalizationProvider>
-
+            </Box>
+            <Box sx={{ paddingTop: '2%' }}>
               <Typography sx={{ marginLeft: "10px", display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
                 Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${(expiryDate).startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
               </Typography>

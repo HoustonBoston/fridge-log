@@ -129,24 +129,25 @@ export default function LaptopPage ()
                 justifyContent: 'center',   // Center the entire layout horizontally
                 alignItems: 'center',       // Align items vertically
             }}>
-                <Box>
+                <Box sx={{paddingBottom: isMobile ? '5%' : '0'}}>
                     {console.log('adding add item button')}
                     <AddItemButton handleAddItem={handleAddItem} />
                 </Box>
             </Box>
-            <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '16px',
-                marginTop: '16px',
-                width: '100%'
-            }}
-            >
+
+            {
+                fridgeItems.map((item, index) =>
                 {
-                    fridgeItems.map((item, index) =>
-                    {
-                        return (
+                    return (
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            padding: isMobile ? '16px' : '0',
+                            marginTop: isMobile ? '16px' : 0,
+                            width: '100%'
+                        }}
+                        >
                             <ItemInfoField
                                 key={item.item_id}
                                 fridge_item={item}
@@ -154,11 +155,11 @@ export default function LaptopPage ()
                                 handleUpdateItem={handleUpdateItem}
                                 isMobile={isMobile}
                             />
-                        )
-                    }
+                        </Box >
                     )
                 }
-            </Box >
+                )
+            }
         </>
     )
 
