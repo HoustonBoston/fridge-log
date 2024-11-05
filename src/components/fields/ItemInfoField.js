@@ -39,62 +39,54 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
   }
 
   return (
-    <Box className="App" sx={{
+    <Box sx={{
       display: "flex",
       justifyContent: "center",
-      height: "100px",
-      flexDirection: isMobile ? 'column' : 'row'
+      alignItems: 'start',
+      flexDirection: {
+        lg: "row",
+        md: "row",
+        sm: "column",
+        xs: "column"
+      },
+      gap: '1em'
     }}>
-      {
-        isMobile ?
-          <>
-            <Box sx={{display:'flex', alignItems:'center', flexDirection:'row'}}>
-              <IconButton onClick={() => handleDeleteItem()} color='blue'>
-                <DeleteIcon color='blue' />
-              </IconButton>
-              <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
-            </Box>
+      <Box >
+        <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
+        {
+          isMobile ?
+            <IconButton onClick={() => handleDeleteItem()} color='blue'>
+              <DeleteIcon color='blue' />
+            </IconButton>
+            : <></>
+        }
+      </Box>
 
-            <Box sx={{ paddingTop: '2%' }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ paddingTop: '2%' }} defaultValue={datePurchased} label="Date purchased" />
-              </LocalizationProvider>
-            </Box>
+      <Box >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateField defaultValue={datePurchased} label="Date purchased" />
+        </LocalizationProvider>
+      </Box>
 
-            <Box sx={{ paddingTop: '2%' }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ paddingTop: '2%' }} value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
-              </LocalizationProvider>
-            </Box>
-            <Box sx={{ paddingTop: '2%' }}>
-              <Typography sx={{ marginLeft: "10px", display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
-                Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${(expiryDate).startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
-              </Typography>
-            </Box>
-          </>
-          :
-          <>
-            <Box>
-              <IconButton onClick={() => handleDeleteItem()} color='blue'>
-                <DeleteIcon color='blue' />
-              </IconButton>
+      <Box >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateField value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
+        </LocalizationProvider>
+        <Typography sx={{ pt:'2%', marginLeft: "10px" }}>
+          Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${(expiryDate).startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
+        </Typography>
+      </Box>
 
-              <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
+      <Box>
+        {
+          !isMobile ?
+            <IconButton onClick={() => handleDeleteItem()} color='blue'>
+              <DeleteIcon color='blue' />
+            </IconButton>
+            : <></>
+        }
 
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ marginLeft: "10px" }} defaultValue={datePurchased} label="Date purchased" />
-              </LocalizationProvider>
-
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateField sx={{ marginLeft: "10px" }} value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
-              </LocalizationProvider>
-
-              <Typography sx={{ marginLeft: "10px", display: 'inline-flex', verticalAlign: 'middle', alignItems: 'center' }}>
-                Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${(expiryDate).startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
-              </Typography>
-            </Box>
-          </>
-      }
+      </Box>
     </Box>
   );
 }

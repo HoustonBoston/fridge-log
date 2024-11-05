@@ -11,11 +11,11 @@ export default function LaptopPage ()
 {
     const [fridgeItems, setFridgeItems] = useState([])
     const [innerWidth, setInnerWidth] = useState(window.innerWidth)
-    const [isMobile, setIsMobile] = useState(innerWidth <= 1000)
-
+    const [isMobile, setIsMobile] = useState(innerWidth < 900)
+    const device_ip = "10.248.33.228";
     const callFetchItemsApi = async () =>
     {
-        const apiUrl = "http://192.168.1.14:8080/ReadFromDDB/items" //api gw url, can be accessed via host machine's IP with configured firewall
+        const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
         try {
@@ -53,7 +53,7 @@ export default function LaptopPage ()
     {
         const { item_id, item_name, expiry_date, purchase_date, timestamp } = item
         console.log('purchase date in callPutItemApi', purchase_date)
-        const apiUrl = `http://192.168.1.14:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
+        const apiUrl = `http://${device_ip}:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -105,7 +105,7 @@ export default function LaptopPage ()
 
     const handleDeleteItem = async (id, timestamp) =>
     {
-        const apiUrl = `http://192.168.1.14:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
+        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
         try {
@@ -122,45 +122,44 @@ export default function LaptopPage ()
     }
 
     return (
-        <>
-
+        <Box sx={{display: "flex", justifyContent: "center", flexDirection:'column'}}>
             <Box sx={{
                 display: 'flex',            // Use flexbox for layout
                 justifyContent: 'center',   // Center the entire layout horizontally
                 alignItems: 'center',       // Align items vertically
             }}>
-                <Box sx={{paddingBottom: isMobile ? '5%' : '0'}}>
+                <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
                     {console.log('adding add item button')}
                     <AddItemButton handleAddItem={handleAddItem} />
                 </Box>
             </Box>
-
-            {
-                fridgeItems.map((item, index) =>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                //padding: isMobile ? '16px' : '0',
+                //marginTop: isMobile ? '16px' : 0,
+                width: '100%',
+                justifyContent:'center',
+                gap: '1.5em'
+            }}>
                 {
-                    return (
-                        <Box sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            padding: isMobile ? '16px' : '0',
-                            marginTop: isMobile ? '16px' : 0,
-                            width: '100%'
-                        }}
-                        >
+                    fridgeItems.map((item, index) =>
+                    {
+                        return (
                             <ItemInfoField
-                                key={item.item_id}
+                                key={index}
                                 fridge_item={item}
                                 handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)}
                                 handleUpdateItem={handleUpdateItem}
                                 isMobile={isMobile}
                             />
-                        </Box >
+                        )
+                    }
                     )
                 }
-                )
-            }
-        </>
+            </Box >
+        </Box>
     )
 
 }
