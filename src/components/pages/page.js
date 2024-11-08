@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
 import { Box } from '@mui/material';
-import { AppBar, Toolbar } from "@mui/material";
 
 import dayjs from "dayjs";
 
@@ -12,7 +11,7 @@ export default function LaptopPage ()
     const [fridgeItems, setFridgeItems] = useState([])
     const [innerWidth, setInnerWidth] = useState(window.innerWidth)
     const [isMobile, setIsMobile] = useState(innerWidth < 900)
-    const device_ip = "10.248.33.228";
+    const device_ip = "192.168.1.14";
     const callFetchItemsApi = async () =>
     {
         const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items` //api gw url, can be accessed via host machine's IP with configured firewall
@@ -130,7 +129,7 @@ export default function LaptopPage ()
             }}>
                 <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
                     {console.log('adding add item button')}
-                    <AddItemButton handleAddItem={handleAddItem} />
+                    <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile}/>
                 </Box>
             </Box>
             <Box sx={{
