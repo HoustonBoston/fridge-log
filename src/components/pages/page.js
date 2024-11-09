@@ -9,8 +9,8 @@ import dayjs from "dayjs";
 export default function LaptopPage ()
 {
     const [fridgeItems, setFridgeItems] = useState([])
-    const [innerWidth, setInnerWidth] = useState(window.innerWidth)
-    const [isMobile, setIsMobile] = useState(innerWidth < 900)
+    const innerWidth = window.innerWidth
+    const isMobile = innerWidth < 900
     const device_ip = "192.168.1.14";
     const callFetchItemsApi = async () =>
     {
@@ -120,8 +120,48 @@ export default function LaptopPage ()
         }
     }
 
+    const callUploadPhotoApi = async (base64Image) =>
+    {
+        const apiUrl = `http://${device_ip}:8080/capturePhoto/item`
+
+        try {
+            const res = await fetch(apiUrl,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        base64Image: base64Image
+                    })
+                }
+            )
+            if (res.ok) {
+                console.log('success response from callUploadPhotoApi', res)
+            }
+            else {
+                console.log('failure response from callUploadPhotoApi', res)
+            }
+        } catch (error) {
+            console.error('error in callUploadPhotoApi', error)
+        }
+    }
+
+    const handleClickPicture = (event) =>
+    {
+        const file = event.target.files[0]
+        if (file) {
+            console.log('photo captured', file)
+            const reader = new FileReader()
+            reader.onload = () =>
+            {
+                //call API
+                callUploadPhotoApi(reader.result)
+            }
+
+            reader.readAsDataURL(file) //load
+        }
+    }
+
     return (
-        <Box sx={{display: "flex", justifyContent: "center", flexDirection:'column'}}>
+        <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column' }}>
             <Box sx={{
                 display: 'flex',            // Use flexbox for layout
                 justifyContent: 'center',   // Center the entire layout horizontally
@@ -129,7 +169,7 @@ export default function LaptopPage ()
             }}>
                 <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
                     {console.log('adding add item button')}
-                    <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile}/>
+                    <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
                 </Box>
             </Box>
             <Box sx={{
@@ -139,7 +179,7 @@ export default function LaptopPage ()
                 //padding: isMobile ? '16px' : '0',
                 //marginTop: isMobile ? '16px' : 0,
                 width: '100%',
-                justifyContent:'center',
+                justifyContent: 'center',
                 gap: '1.5em'
             }}>
                 {

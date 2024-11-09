@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Typography, Box, Button, IconButton } from '@mui/material';
 import { AddTask, PhotoCamera } from "@mui/icons-material";
 
-export default function AddItemButton ({ handleAddItem, isMobile })
+export default function AddItemButton ({ handleAddItem, isMobile, handleClickPicture })
 {
     const inputRef = React.useRef(null)
 
@@ -10,23 +10,6 @@ export default function AddItemButton ({ handleAddItem, isMobile })
     {
         if (inputRef.current)
             inputRef.current.click()
-    }
-
-    const handleClickPicture = (event) =>
-    {
-        const file = event.target.files[0]
-        if (file) {
-            console.log('photo captured', file)
-            const reader = new FileReader()
-            reader.onload = () =>
-            {
-                console.log('after loading', reader.result) //after loading
-                //call API
-                
-            }
-
-            reader.readAsDataURL(file) //load
-        }
     }
 
     return (
@@ -56,7 +39,7 @@ export default function AddItemButton ({ handleAddItem, isMobile })
                             width: '100%',
                             height: '100%',
                             borderRadius: '20px',
-                            gap:'0.5em'
+                            gap: '0.5em'
                         }}>
                         <PhotoCamera />
                         <Typography>
