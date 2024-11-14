@@ -6,12 +6,14 @@ import { Box } from '@mui/material';
 
 import dayjs from "dayjs";
 
+const device_ip = "10.248.39.181";
+
 export default function LaptopPage ()
 {
     const [fridgeItems, setFridgeItems] = useState([])
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
-    const device_ip = "192.168.1.14";
+
     const callFetchItemsApi = async () =>
     {
         const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items` //api gw url, can be accessed via host machine's IP with configured firewall
@@ -134,7 +136,9 @@ export default function LaptopPage ()
                 }
             )
             if (res.ok) {
-                console.log('success response from callUploadPhotoApi', res)
+                const resJson = await res.json()
+                console.log('response json', resJson)
+                return resJson
             }
             else {
                 console.log('failure response from callUploadPhotoApi', res)
@@ -150,13 +154,15 @@ export default function LaptopPage ()
         if (file) {
             console.log('photo captured', file)
             const reader = new FileReader()
-            reader.onload = () =>
+            reader.readAsDataURL(file) //convert to base64 encoding
+            let resJson
+            reader.onload = async () =>
             {
                 //call API
-                callUploadPhotoApi(reader.result)
+                resJson = await callUploadPhotoApi(reader.result)
+                if(resJson && resJson.TextDetections)
+                console.log('text detections in handleClickPicture', resJson.TextDetections)
             }
-
-            reader.readAsDataURL(file) //load
         }
     }
 
