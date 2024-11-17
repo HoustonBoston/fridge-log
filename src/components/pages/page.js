@@ -6,10 +6,12 @@ import { Box } from '@mui/material';
 
 import dayjs from "dayjs";
 
-const device_ip = "10.248.39.181";
-
+const device_ip = "192.168.1.14";
+const monthStrArr = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 export default function LaptopPage ()
 {
+    const [relevantTexts, setRelevantTexts] = useState([])
+    const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
@@ -20,7 +22,7 @@ export default function LaptopPage ()
         console.log('trying to call fetch items API')
 
         try {
-            console.log('inside try')
+            console.log('inside try for callFetchItemsApi in page.js')
             const res = await fetch(apiUrl, {
                 method: 'GET',
             })
@@ -33,9 +35,9 @@ export default function LaptopPage ()
                 setFridgeItems(data.Items)
                 console.log('items', data.Items)
             }
-            else console.error('API call failed')
+            else console.error('callFetchItemsApi call failed in page.js')
         } catch (error) {
-            console.log('error after fetch', error)
+            console.log('error after fetch in callFetchItemsApi', error)
         }
     }
 
@@ -44,11 +46,11 @@ export default function LaptopPage ()
         console.log('use effect')
         const fetchData = async () =>
         {
-            console.log('trying to fetch data')
+            console.log('trying to fetch data in useEffect')
             await callFetchItemsApi()
         }
         fetchData()
-    }, []) // when updating. Depends on fridgeItems
+    }, [])
 
     const callPutItemApi = async (item) =>
     {
@@ -160,8 +162,70 @@ export default function LaptopPage ()
             {
                 //call API
                 resJson = await callUploadPhotoApi(reader.result)
-                if(resJson && resJson.TextDetections)
-                console.log('text detections in handleClickPicture', resJson.TextDetections)
+                if (resJson && resJson.TextDetections) {
+                    setDetectedTexts(resJson.TextDetections)
+                }
+            }
+        }
+    }
+
+    const findRelevantTexts = () =>
+    {
+        const foundTexts = []
+        let targetIndex = -1;
+        for (let i = 0; i < detectedTexts.length; i++) {
+            let word = detectedTexts[i].DetectedText.toLowerCase()
+            if (word.includes("exp") || word.includes("manufacture date") || word.includes("used b") || word.includes("use before") || word.includes("best b") || word.includes("best")) {
+                console.log('found word with exp or manuf:', word)
+                targetIndex = i;
+            }
+            if (targetIndex !== -1 && i <= targetIndex + 2) {
+                foundTexts.push(word)
+                console.log('pushing word into foundTexts', word)
+            }
+        }
+        setRelevantTexts(foundTexts)
+    }
+
+    useEffect(() =>
+    {
+        if (detectedTexts.length > 0) {
+            console.log('detectedTexts has changed')
+            findRelevantTexts()
+        }
+    }, [detectedTexts])
+
+    useEffect(() =>
+    {
+        console.log('relevant texts', relevantTexts)
+        console.log('adding to text after extraction')
+        addToTableAfterTextract()
+    }, [relevantTexts])
+
+    const addToTableAfterTextract = async () =>
+    {
+        //for this example format: 'best jan 23 2026' 
+        if (relevantTexts.length > 0) {
+            let relevantDateStr = relevantTexts[0].substring(5)
+            const dateMatch = relevantDateStr.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{1,2} \d{4}/i)
+
+            if (dateMatch) {
+                const dateString = dateMatch[0]
+                console.log('date string:', dateString)
+                const dateObject = new Date(dateString)
+                console.log('date object', dateObject)
+                console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
+                
+                const currentDate = dayjs().hour(12)
+                const daysjsDate = dayjs(dateObject).hour(12)
+                const item = {
+                    item_id: uuidv4(),
+                    item_name: "",
+                    expiry_date: daysjsDate.unix(),
+                    purchase_date: currentDate.unix(),
+                    timestamp: currentDate.unix()
+                }
+                await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
             }
         }
     }
