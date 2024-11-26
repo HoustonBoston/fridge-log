@@ -3,21 +3,19 @@ import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
 import { Box } from '@mui/material';
+import LoginButton from '../buttons/LoginButton';
 
 import dayjs from "dayjs";
 
-const device_ip = "192.168.1.14";
-const monthStrArr = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-export default function LaptopPage ()
-{
+const device_ip = "localhost";
+export default function LaptopPage() {
     const [relevantTexts, setRelevantTexts] = useState([])
     const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
 
-    const callFetchItemsApi = async () =>
-    {
+    const callFetchItemsApi = async () => {
         const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
@@ -41,19 +39,15 @@ export default function LaptopPage ()
         }
     }
 
-    useEffect(() =>
-    {
-        console.log('use effect')
-        const fetchData = async () =>
-        {
+    useEffect(() => {
+        const fetchData = async () => {
             console.log('trying to fetch data in useEffect')
             await callFetchItemsApi()
         }
         fetchData()
     }, [])
 
-    const callPutItemApi = async (item) =>
-    {
+    const callPutItemApi = async (item) => {
         const { item_id, item_name, expiry_date, purchase_date, timestamp } = item
         console.log('purchase date in callPutItemApi', purchase_date)
         const apiUrl = `http://${device_ip}:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
@@ -87,8 +81,7 @@ export default function LaptopPage ()
         console.log('fridge items after adding item', fridgeItems)
     }
 
-    const handleUpdateItem = (item_to_update) =>
-    {
+    const handleUpdateItem = (item_to_update) => {
         const { item_id, item_name, expiry_date, purchase_date, timestamp } = item_to_update
         const updated_item = {
             item_id: item_id,
@@ -106,8 +99,7 @@ export default function LaptopPage ()
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, timestamp) =>
-    {
+    const handleDeleteItem = async (id, timestamp) => {
         const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
@@ -124,8 +116,7 @@ export default function LaptopPage ()
         }
     }
 
-    const callUploadPhotoApi = async (base64Image) =>
-    {
+    const callUploadPhotoApi = async (base64Image) => {
         const apiUrl = `http://${device_ip}:8080/capturePhoto/item`
 
         try {
@@ -150,16 +141,14 @@ export default function LaptopPage ()
         }
     }
 
-    const handleClickPicture = (event) =>
-    {
+    const handleClickPicture = (event) => {
         const file = event.target.files[0]
         if (file) {
             console.log('photo captured', file)
             const reader = new FileReader()
             reader.readAsDataURL(file) //convert to base64 encoding
             let resJson
-            reader.onload = async () =>
-            {
+            reader.onload = async () => {
                 //call API
                 resJson = await callUploadPhotoApi(reader.result)
                 if (resJson && resJson.TextDetections) {
@@ -169,8 +158,7 @@ export default function LaptopPage ()
         }
     }
 
-    const findRelevantTexts = () =>
-    {
+    const findRelevantTexts = () => {
         const foundTexts = []
         let targetIndex = -1;
         for (let i = 0; i < detectedTexts.length; i++) {
@@ -187,23 +175,20 @@ export default function LaptopPage ()
         setRelevantTexts(foundTexts)
     }
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         if (detectedTexts.length > 0) {
             console.log('detectedTexts has changed')
             findRelevantTexts()
         }
     }, [detectedTexts])
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         console.log('relevant texts', relevantTexts)
         console.log('adding to text after extraction')
         addToTableAfterTextract()
     }, [relevantTexts])
 
-    const addToTableAfterTextract = async () =>
-    {
+    const addToTableAfterTextract = async () => {
         //for this example format: 'best jan 23 2026' 
         if (relevantTexts.length > 0) {
             let relevantDateStr = relevantTexts[0].substring(5)
@@ -215,7 +200,7 @@ export default function LaptopPage ()
                 const dateObject = new Date(dateString)
                 console.log('date object', dateObject)
                 console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
-                
+
                 const currentDate = dayjs().hour(12)
                 const daysjsDate = dayjs(dateObject).hour(12)
                 const item = {
@@ -231,44 +216,43 @@ export default function LaptopPage ()
     }
 
     return (
-        <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column' }}>
-            <Box sx={{
-                display: 'flex',            // Use flexbox for layout
-                justifyContent: 'center',   // Center the entire layout horizontally
-                alignItems: 'center',       // Align items vertically
-            }}>
-                <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
-                    {console.log('adding add item button')}
-                    <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
+        <>
+            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column' }}>
+                <Box sx={{
+                    display: 'flex',            // Use flexbox for layout
+                    justifyContent: 'center',   // Center the entire layout horizontally
+                    alignItems: 'center',       // Align items vertically
+                }}>
+                    <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
+                        <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
+                    </Box>
                 </Box>
-            </Box>
-            <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                //padding: isMobile ? '16px' : '0',
-                //marginTop: isMobile ? '16px' : 0,
-                width: '100%',
-                justifyContent: 'center',
-                gap: '1.5em'
-            }}>
-                {
-                    fridgeItems.map((item, index) =>
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    //padding: isMobile ? '16px' : '0',
+                    //marginTop: isMobile ? '16px' : 0,
+                    width: '100%',
+                    justifyContent: 'center',
+                    gap: '1.5em'
+                }}>
                     {
-                        return (
-                            <ItemInfoField
-                                key={index}
-                                fridge_item={item}
-                                handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)}
-                                handleUpdateItem={handleUpdateItem}
-                                isMobile={isMobile}
-                            />
+                        fridgeItems.map((item, index) => {
+                            return (
+                                <ItemInfoField
+                                    key={index}
+                                    fridge_item={item}
+                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)}
+                                    handleUpdateItem={handleUpdateItem}
+                                    isMobile={isMobile}
+                                />
+                            )
+                        }
                         )
                     }
-                    )
-                }
-            </Box >
-        </Box>
+                </Box >
+            </Box>
+        </>
     )
-
 }
