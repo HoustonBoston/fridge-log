@@ -13,8 +13,8 @@ root.render(
    <Router>
       <GoogleOAuthProvider clientId={clientId}>
          <Routes>
-            <Route path='/login' element={<LoginPage />}/>
-            <Route path='/' element={<LaptopPage />}/>
+            <Route path='/login' exact element={<LoginPage />}/>
+            <Route path='/' exact element={<LaptopPage />}/>
          </Routes>
       </GoogleOAuthProvider>
    </Router>
