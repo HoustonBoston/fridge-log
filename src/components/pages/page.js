@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
 import { Box } from '@mui/material';
-import LoginButton from '../buttons/LoginButton';
 
 import dayjs from "dayjs";
 
@@ -25,7 +24,7 @@ export default function LaptopPage() {
                 method: 'GET',
             })
             console.log('after invoking try')
-            
+
             if (res.ok) {
                 const data = await res.json()
                 console.log('OK respose received from callFetchItemsApi:', res)
@@ -105,6 +104,7 @@ export default function LaptopPage() {
         const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
+
         try {
             const res = await fetch(apiUrl, {
                 method: 'POST'
@@ -147,7 +147,7 @@ export default function LaptopPage() {
 
     const handleClickPicture = (event) => {
         const file = event.target.files[0]
-        
+
         if (file) {
             console.log('photo captured', file)
             const reader = new FileReader()
