@@ -25,6 +25,7 @@ export default function LaptopPage() {
                 method: 'GET',
             })
             console.log('after invoking try')
+            
             if (res.ok) {
                 const data = await res.json()
                 console.log('OK respose received from callFetchItemsApi:', res)
@@ -57,6 +58,7 @@ export default function LaptopPage() {
             const res = await fetch(apiUrl, {
                 method: 'POST'
             })
+
             if (res.ok) {
                 console.log('OK response from callPutItemApi', res)
             }
@@ -107,6 +109,7 @@ export default function LaptopPage() {
             const res = await fetch(apiUrl, {
                 method: 'POST'
             })
+
             if (res.ok) {
                 console.log('OK response from handleDeleteItem', res)
             }
@@ -128,6 +131,7 @@ export default function LaptopPage() {
                     })
                 }
             )
+
             if (res.ok) {
                 const resJson = await res.json()
                 console.log('response json', resJson)
@@ -143,6 +147,7 @@ export default function LaptopPage() {
 
     const handleClickPicture = (event) => {
         const file = event.target.files[0]
+        
         if (file) {
             console.log('photo captured', file)
             const reader = new FileReader()
