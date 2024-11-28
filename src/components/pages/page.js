@@ -86,7 +86,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
             user_email: userEmail,
             item_id: uuidv4(),
             item_name: "",
-            expiry_date: currentDate.unix(),
+            expiry_date: currentDate.add(1, "day").unix(),
             purchase_date: currentDate.unix(),
             timestamp: dayjs().unix()
         }
