@@ -86,7 +86,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
             user_email: userEmail,
             item_id: uuidv4(),
             item_name: "",
-            expiry_date: currentDate.unix(),
+            expiry_date: currentDate.add(1, "day").unix(),
             purchase_date: currentDate.unix(),
             timestamp: dayjs().unix()
         }
@@ -122,8 +122,8 @@ export default function LaptopPage({ setIsAuthenticated }) {
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, user_email) => {
-        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?email=${user_email}`
+    const handleDeleteItem = async (id, timestamp, email) => {
+        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
 
@@ -283,7 +283,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
                                 <ItemInfoField
                                     key={item.item_id + index}
                                     fridge_item={item}
-                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.user_email)}
+                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
                                     handleUpdateItem={handleUpdateItem}
                                     isMobile={isMobile}
                                 />
