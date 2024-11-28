@@ -2,12 +2,10 @@ import * as React from 'react';
 import { Typography, Box, Button, IconButton } from '@mui/material';
 import { AddTask, PhotoCamera } from "@mui/icons-material";
 
-export default function AddItemButton ({ handleAddItem, isMobile, handleClickPicture })
-{
+export default function AddItemButton({ handleAddItem, isMobile, handleClickPicture }) {
     const inputRef = React.useRef(null)
 
-    const handleOpenFileDialog = () =>
-    {
+    const handleOpenFileDialog = () => {
         if (inputRef.current)
             inputRef.current.click()
     }
@@ -43,7 +41,7 @@ export default function AddItemButton ({ handleAddItem, isMobile, handleClickPic
                         }}>
                         <PhotoCamera />
                         <Typography>
-                            Take a picture
+                            Take a picture (BETA)
                         </Typography>
                     </IconButton>
                 </Box>
