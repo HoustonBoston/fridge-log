@@ -2,20 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
+import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
 
 import dayjs from "dayjs";
+import { LogoutOutlined } from '@mui/icons-material';
 
 const device_ip = "localhost";
-export default function LaptopPage() {
+
+export default function LaptopPage({ setIsAuthenticated }) {
     const [relevantTexts, setRelevantTexts] = useState([])
     const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
+    const navigate = useNavigate()
+
+    const decoded = jwtDecode(localStorage.getItem('user_token'))
+    const userEmail = decoded.email
+    console.log('decoded', decoded)
+    console.log('user email', userEmail)
 
     const callFetchItemsApi = async () => {
-        const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items` //api gw url, can be accessed via host machine's IP with configured firewall
+        const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
         try {
@@ -48,9 +59,9 @@ export default function LaptopPage() {
     }, [])
 
     const callPutItemApi = async (item) => {
-        const { item_id, item_name, expiry_date, purchase_date, timestamp } = item
+        const { item_id, item_name, expiry_date, purchase_date, timestamp, user_email } = item
         console.log('purchase date in callPutItemApi', purchase_date)
-        const apiUrl = `http://${device_ip}:8080/WriteToDDB/putItem?item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
+        const apiUrl = `http://${device_ip}:8080/WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -70,38 +81,49 @@ export default function LaptopPage() {
     const handleAddItem = async () => // send dates as unix!!
     {
         const currentDate = dayjs().hour(12)
+
         const item = {
+            user_email: userEmail,
             item_id: uuidv4(),
             item_name: "",
             expiry_date: currentDate.unix(),
             purchase_date: currentDate.unix(),
             timestamp: dayjs().unix()
         }
+
+        setFridgeItems([item, ...fridgeItems])
+
         console.log('adding new item', item)
-        await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
+
+        await callPutItemApi(item)
+
+
         console.log('fridge items after adding item', fridgeItems)
     }
 
-    const handleUpdateItem = (item_to_update) => {
+    const handleUpdateItem = async (item_to_update) => {
         const { item_id, item_name, expiry_date, purchase_date, timestamp } = item_to_update
+
         const updated_item = {
+            user_email: userEmail,
             item_id: item_id,
             item_name: item_name,
             expiry_date: expiry_date,
             purchase_date: purchase_date,
-            timestamp: timestamp
+            timestamp: timestamp,
         }
+
         console.log('calling update item')
 
-        setFridgeItems((prevItems) => prevItems.map((item) => item.item_id === item_id ? updated_item : item))
+        await callPutItemApi(updated_item)
 
-        callPutItemApi(updated_item)
+        setFridgeItems((prevItems) => prevItems.map((item) => item.item_id === item_id ? updated_item : item))
 
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, timestamp) => {
-        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?timestamp=${timestamp}`
+    const handleDeleteItem = async (id, user_email) => {
+        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${id}?email=${user_email}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
 
@@ -210,6 +232,7 @@ export default function LaptopPage() {
                 const daysjsDate = dayjs(dateObject).hour(12)
                 const item = {
                     item_id: uuidv4(),
+                    user_email: userEmail,
                     item_name: "",
                     expiry_date: daysjsDate.unix(),
                     purchase_date: currentDate.unix(),
@@ -218,6 +241,12 @@ export default function LaptopPage() {
                 await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
             }
         }
+    }
+
+    const handleClickLogout = () => {
+        localStorage.removeItem('user_token')
+        setIsAuthenticated(false)
+        navigate('/login')
     }
 
     return (
@@ -229,6 +258,12 @@ export default function LaptopPage() {
                     alignItems: 'center',       // Align items vertically
                 }}>
                     <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
+                        <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Typography>Welcome, {decoded.name}!</Typography>
+                            <Button onClick={handleClickLogout}>
+                                <LogoutOutlined />
+                            </Button>
+                        </Box>
                         <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
                     </Box>
                 </Box>
@@ -246,9 +281,9 @@ export default function LaptopPage() {
                         fridgeItems.map((item, index) => {
                             return (
                                 <ItemInfoField
-                                    key={index}
+                                    key={item.item_id + index}
                                     fridge_item={item}
-                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp)}
+                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.user_email)}
                                     handleUpdateItem={handleUpdateItem}
                                     isMobile={isMobile}
                                 />
