@@ -23,7 +23,6 @@ export default function LaptopPage({ setIsAuthenticated }) {
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
     console.log('decoded', decoded)
-    console.log('user email', userEmail)
 
     const callFetchItemsApi = async () => {
         const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
