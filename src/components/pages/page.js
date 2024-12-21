@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
 
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
 const device_ip = "localhost";
@@ -79,7 +81,9 @@ export default function LaptopPage({ setIsAuthenticated }) {
 
     const handleAddItem = async () => // send dates as unix!!
     {
-        const currentDate = dayjs().hour(12)
+        dayjs.extend(utc)
+        dayjs.extend(timezone)
+        const currentDate = dayjs().tz('America/New_York').hour(12).minute(0).second(0).millisecond(0)
 
         const item = {
             user_email: userEmail,

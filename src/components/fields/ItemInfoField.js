@@ -1,5 +1,7 @@
 import * as React from 'react';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { Box, IconButton, TextField, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete'
 import { DateField, LocalizationProvider, } from '@mui/x-date-pickers';
@@ -14,8 +16,11 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
   const handleExpiryDateChange = (value) => {
     console.log('calling handleExpiryDateChange')
     console.log('value in handleExpiryDateChange', value)
+
     if (dayjs.isDayjs(value)) {
-      const updatedItem = { ...fridge_item, expiry_date: value.hour(12).unix() }
+      dayjs.extend(utc)
+      dayjs.extend(timezone)
+      const updatedItem = { ...fridge_item, expiry_date: value.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix() }
       handleUpdateItem(updatedItem)
       setExpiryDate(dayjs(value).hour(12))
     }
