@@ -22,7 +22,7 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
       dayjs.extend(timezone)
       const updatedItem = { ...fridge_item, expiry_date: value.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix() }
       handleUpdateItem(updatedItem)
-      setExpiryDate(dayjs(value).hour(12))
+      setExpiryDate(dayjs(value).tz('America/New_York').hour(12).minute(0).second(0).millisecond(0))
     }
   }
 
