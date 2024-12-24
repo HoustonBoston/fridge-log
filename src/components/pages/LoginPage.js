@@ -2,17 +2,43 @@ import React from "react"
 import { GoogleLogin } from "@react-oauth/google"
 import { useNavigate } from "react-router-dom"
 import { Box } from "@mui/material"
+import { jwtDecode } from "jwt-decode"
 
-export default function LoginPage({ setIsAuthenicated }) {
+export default function LoginPage ({ setIsAuthenicated })
+{
     const navigate = useNavigate()
+    const device_ip = "localhost"
 
-    const handleLoginSuccess = (credentialResponse) => {
-        localStorage.setItem('user_token', credentialResponse.credential)
-        setIsAuthenicated(true)
-        navigate('/')
+    // call api to check if email is already in DB
+    const checkEmailInDDB = async () =>
+    {
+        console.log('checking email in DDB')
+        const decoded = jwtDecode(localStorage.getItem('user_token'))
+        const userEmail = decoded.email
+        const apiUrl = `http://${device_ip}:8080/checkEmailExistence/email?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
+        console.log('trying to call check email existence API')
+
+        try {
+            const res = await fetch(apiUrl, {
+                method: 'GET',
+            })
+
+            if (res.ok)
+                return true
+            return false;
+        } catch (e) {
+            console.error(e)
+        }
     }
 
-    const hanldeLoginError = () => {
+    const handleLoginSuccess = async (credentialResponse) =>
+    {
+        localStorage.setItem('user_token', credentialResponse.credential) //JWT
+        await checkEmailInDDB().then(setIsAuthenicated(true)).then(navigate('/'))
+    }
+
+    const hanldeLoginError = () =>
+    {
         console.log('login error')
     }
 

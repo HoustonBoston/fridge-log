@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
 
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
 const device_ip = "localhost";
@@ -23,7 +25,6 @@ export default function LaptopPage({ setIsAuthenticated }) {
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
     console.log('decoded', decoded)
-    console.log('user email', userEmail)
 
     const callFetchItemsApi = async () => {
         const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
@@ -80,13 +81,15 @@ export default function LaptopPage({ setIsAuthenticated }) {
 
     const handleAddItem = async () => // send dates as unix!!
     {
-        const currentDate = dayjs().hour(12)
+        dayjs.extend(utc)
+        dayjs.extend(timezone)
+        const currentDate = dayjs().tz('America/New_York').hour(12).minute(0).second(0).millisecond(0)
 
         const item = {
             user_email: userEmail,
             item_id: uuidv4(),
             item_name: "",
-            expiry_date: currentDate.add(1, "day").unix(),
+            expiry_date: currentDate.add(2, "day").unix(),
             purchase_date: currentDate.unix(),
             timestamp: dayjs().unix()
         }
