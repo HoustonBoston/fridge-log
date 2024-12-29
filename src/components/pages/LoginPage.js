@@ -34,7 +34,7 @@ export default function LoginPage ({ setIsAuthenicated })
     const handleLoginSuccess = async (credentialResponse) =>
     {
         localStorage.setItem('user_token', credentialResponse.credential) //JWT
-        await checkEmailInDDB().then(setIsAuthenicated(true)).then(navigate('/'))
+        await checkEmailInDDB().then(setIsAuthenicated(true)).then(navigate('/fridge-log'))
     }
 
     const hanldeLoginError = () =>
