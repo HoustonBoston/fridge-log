@@ -8,6 +8,9 @@ import { DateField, LocalizationProvider, } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpdateItem, isMobile }) {
+  dayjs.extend(utc)
+  dayjs.extend(timezone)
+
   const { item_name, expiry_date, purchase_date } = fridge_item //in unix when data is fetched
   const [datePurchased, setDatePurchased] = React.useState(dayjs.unix(purchase_date)) //convert back to dayjs object
   const [expiryDate, setExpiryDate] = React.useState(dayjs.unix(expiry_date)) // convert back to dayjs object
@@ -18,8 +21,6 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
     console.log('value in handleExpiryDateChange', value)
 
     if (dayjs.isDayjs(value)) {
-      dayjs.extend(utc)
-      dayjs.extend(timezone)
       const updatedItem = { ...fridge_item, expiry_date: value.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix() }
       handleUpdateItem(updatedItem)
       setExpiryDate(dayjs(value).tz('America/New_York').hour(12).minute(0).second(0).millisecond(0))
@@ -69,7 +70,7 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
           <DateField value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
         </LocalizationProvider>
         <Typography sx={{ pt: '2%', marginLeft: "10px" }}>
-          Expires in {(expiryDate.startOf('day').diff(dayjs().startOf('day'), 'days') === 1) ? "1 day" : `${(expiryDate).startOf('day').diff(dayjs().startOf('day'), 'days')} days`}
+          Expires in {(expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days') === 1) ? "1 day" : `${expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days')} days`}
         </Typography>
       </Box>
 
