@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/fridge-log/static/js/main.32d874f8.js",
+    "index.html": "/fridge-log/index.html",
+    "main.32d874f8.js.map": "/fridge-log/static/js/main.32d874f8.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.32d874f8.js"
+  ]
+}
