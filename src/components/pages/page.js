@@ -27,7 +27,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
     console.log('decoded', decoded)
 
     const callFetchItemsApi = async () => {
-        const apiUrl = `http://${device_ip}:8080/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
+        const apiUrl = `https://yionc4dtw0.execute-api.us-east-1.amazonaws.com/prod/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
         try {
@@ -62,7 +62,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
     const callPutItemApi = async (item) => {
         const { item_id, item_name, expiry_date, purchase_date, timestamp, user_email } = item
         console.log('purchase date in callPutItemApi', purchase_date)
-        const apiUrl = `http://${device_ip}:8080/WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
+        const apiUrl = `https://4octzs8bc4.execute-api.us-east-1.amazonaws.com/prod/WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&date_purchased_epoch_dayjs=${purchase_date}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -126,7 +126,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
     }
 
     const handleDeleteItem = async (id, timestamp, email) => {
-        const apiUrl = `http://${device_ip}:8080/DeleteItem/item/${email}?timestamp=${timestamp}`
+        const apiUrl = `https://41iik61twd.execute-api.us-east-1.amazonaws.com/prod/DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
 
@@ -145,7 +145,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
     }
 
     const callUploadPhotoApi = async (base64Image) => {
-        const apiUrl = `http://${device_ip}:8080/capturePhoto/item`
+        const apiUrl = `https://saq5gw6v82.execute-api.us-east-1.amazonaws.com/prod/capturePhoto/item`
 
         try {
             const res = await fetch(apiUrl,
