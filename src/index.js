@@ -23,7 +23,6 @@ function App() {
       <Router>
          <GoogleOAuthProvider clientId={clientId}>
             <Routes>
-               <Route path='/login' exact element={<LoginPage setIsAuthenicated={setIsAuthenticated} />} />
                <Route path='/fridge-log' exact element={isAuthenticated ? <LaptopPage setIsAuthenticated={setIsAuthenticated} /> : <LoginPage setIsAuthenicated={setIsAuthenticated} />} />
             </Routes>
          </GoogleOAuthProvider>
