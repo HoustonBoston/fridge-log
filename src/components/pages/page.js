@@ -249,7 +249,7 @@ export default function LaptopPage({ setIsAuthenticated }) {
     const handleClickLogout = () => {
         localStorage.removeItem('user_token')
         setIsAuthenticated(false)
-        navigate('/login')
+        navigate('/fridge-log')
     }
 
     return (
