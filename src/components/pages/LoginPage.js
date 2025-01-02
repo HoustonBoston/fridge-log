@@ -1,7 +1,7 @@
 import React from "react"
 import { GoogleLogin } from "@react-oauth/google"
 import { useNavigate } from "react-router-dom"
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { jwtDecode } from "jwt-decode"
 
 export default function LoginPage ({ setIsAuthenicated })
@@ -43,8 +43,17 @@ export default function LoginPage ({ setIsAuthenicated })
     }
 
     return (
-        <Box>
-            <h2>Login Page</h2>
+        <Box sx={{
+            "display" : "flex",
+            "alignItems": "center",
+            "justifyContent": "center",
+            "flexDirection" : "column",
+            "height" : "50vh"
+        }}>
+            <Typography>Welcome to Fridge Log!</Typography>
+            <br></br>
+            <Typography>What's in your fridge?</Typography>
+            <br></br>
             <GoogleLogin
                 onSuccess={handleLoginSuccess}
                 onError={hanldeLoginError}
