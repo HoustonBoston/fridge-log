@@ -52,7 +52,7 @@ export default function LoginPage ({ setIsAuthenicated })
         }}>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
-            <Typography>What's in your fridge?</Typography>
+            <Typography>Sign in to look at what's in your fridge.</Typography>
             <br></br>
             <GoogleLogin
                 onSuccess={handleLoginSuccess}
