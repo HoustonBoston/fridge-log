@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom"
 import { Box, Typography } from "@mui/material"
 import { jwtDecode } from "jwt-decode"
 
+import image from '../../fridge.png'
+
 export default function LoginPage ({ setIsAuthenicated })
 {
     const navigate = useNavigate()
-    const device_ip = "localhost"
 
     // call api to check if email is already in DB
     const checkEmailInDDB = async () =>
@@ -50,11 +51,15 @@ export default function LoginPage ({ setIsAuthenicated })
             "flexDirection" : "column",
             "height" : "50vh"
         }}>
+            <img src={image} alt="Logo" height="100px" />
+            <br></br>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
             <Typography>Sign in to look at what's in your fridge.</Typography>
             <br></br>
             <GoogleLogin
+                theme="filled_blue"
+                type="standard"
                 onSuccess={handleLoginSuccess}
                 onError={hanldeLoginError}
             />
