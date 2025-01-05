@@ -11,8 +11,7 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
   dayjs.extend(utc)
   dayjs.extend(timezone)
 
-  const { item_name, expiry_date, purchase_date } = fridge_item //in unix when data is fetched
-  const [datePurchased, setDatePurchased] = React.useState(dayjs.unix(purchase_date)) //convert back to dayjs object
+  const { item_name, expiry_date } = fridge_item //in unix when data is fetched
   const [expiryDate, setExpiryDate] = React.useState(dayjs.unix(expiry_date)) // convert back to dayjs object
   console.log('expiryDate in ItemInfoField', expiryDate)
 
@@ -57,12 +56,6 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
             </IconButton>
             : <></>
         }
-      </Box>
-
-      <Box >
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateField defaultValue={datePurchased} label="Date purchased" />
-        </LocalizationProvider>
       </Box>
 
       <Box >
