@@ -45,19 +45,22 @@ export default function LoginPage ({ setIsAuthenicated })
 
     return (
         <Box sx={{
-            "display" : "flex",
+            "display": "flex",
             "alignItems": "center",
             "justifyContent": "center",
-            "flexDirection" : "column",
-            "height" : "50vh"
+            "flexDirection": "column",
+            "height": "50vh"
         }}>
             <img src={image} alt="Logo" height="100px" />
             <br></br>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
-            <Typography>Sign in to look at what's in your fridge.</Typography>
+            <Typography>Please note that if you are a new user, you will see an email from AWS in your spam folder.
+            </Typography>
+            <Typography>Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
             <br></br>
             <GoogleLogin
+                text="continue_with"
                 theme="filled_blue"
                 type="standard"
                 onSuccess={handleLoginSuccess}
