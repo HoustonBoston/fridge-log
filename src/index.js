@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import LaptopPage from "./components/pages/page";
 import LoginPage from './components/pages/LoginPage';
