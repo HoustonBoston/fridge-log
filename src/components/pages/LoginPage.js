@@ -57,13 +57,12 @@ export default function LoginPage ({ setIsAuthenicated })
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
             <Card sx={{
-                width: "20em",
+                width: "15em",
                 color: "red",
+                fontSize: 20
             }} variant="outlined">
-                <CardContent>
-                    <Typography>Please note that if you are a new user, you will see an email from AWS in your spam folder.
-                        Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
-                </CardContent>
+                <Typography>NOTE: If you are a new user, you will see an email from AWS in your spam folder.
+                    Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
             </Card>
             <br></br>
             <GoogleLogin
