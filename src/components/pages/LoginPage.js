@@ -1,7 +1,8 @@
 import React from "react"
 import { GoogleLogin } from "@react-oauth/google"
 import { useNavigate } from "react-router-dom"
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, Card, CardContent } from "@mui/material"
+
 import { jwtDecode } from "jwt-decode"
 
 import image from '../../fridge.png'
@@ -55,9 +56,15 @@ export default function LoginPage ({ setIsAuthenicated })
             <br></br>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
-            <Typography>Please note that if you are a new user, you will see an email from AWS in your spam folder.
-            </Typography>
-            <Typography>Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
+            <Card sx={{
+                width: "20em",
+                color: "red",
+            }} variant="outlined">
+                <CardContent>
+                    <Typography>Please note that if you are a new user, you will see an email from AWS in your spam folder.
+                        Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
+                </CardContent>
+            </Card>
             <br></br>
             <GoogleLogin
                 text="continue_with"

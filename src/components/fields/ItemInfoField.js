@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { Box, IconButton, TextField, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete'
-import { DateField, LocalizationProvider, } from '@mui/x-date-pickers';
+import { DateField, DatePicker, LocalizationProvider, } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUpdateItem, isMobile })
@@ -21,7 +21,8 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
     console.log('calling handleExpiryDateChange')
     console.log('value in handleExpiryDateChange', value)
 
-    if (dayjs.isDayjs(value)) {
+    if (dayjs.isDayjs(value) && value.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix() !==
+      expiryDate.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix()) {
       const updatedItem = { ...fridge_item, expiry_date: value.tz('America/New_York').hour(12).minute(0).second(0).millisecond(0).unix() }
       handleUpdateItem(updatedItem)
       setExpiryDate(dayjs(value).tz('America/New_York').hour(12).minute(0).second(0).millisecond(0))
@@ -65,7 +66,7 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
 
       <Box >
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateField value={expiryDate} label="Expiry date" onChange={handleExpiryDateChange} />
+          <DatePicker value={expiryDate} label="Expiry date" onAccept={handleExpiryDateChange} />
         </LocalizationProvider>
         <Typography sx={{ pt: '2%', marginLeft: "10px" }}>
           Expires in {(expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days') === 1) ? "1 day" : `${expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days')} days`}
