@@ -7,17 +7,17 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { DateField, DatePicker, LocalizationProvider, } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUpdateItem, isMobile })
-{
+import DeleteItemDialog from '../dialog/DeleteItemDialog';
+
+export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpdateItem, isMobile }) {
   dayjs.extend(utc)
   dayjs.extend(timezone)
 
+  const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false)
   const { item_name, expiry_date } = fridge_item //in unix when data is fetched
   const [expiryDate, setExpiryDate] = React.useState(dayjs.unix(expiry_date)) // convert back to dayjs object
-  console.log('expiryDate in ItemInfoField', expiryDate)
 
-  const handleExpiryDateChange = (value) =>
-  {
+  const handleExpiryDateChange = (value) => {
     console.log('calling handleExpiryDateChange')
     console.log('value in handleExpiryDateChange', value)
 
@@ -29,8 +29,7 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
     }
   }
 
-  const handleItemNameChange = (event) =>
-  {
+  const handleItemNameChange = (event) => {
     if (event.target.value !== item_name) {
       console.log('event.targe.value', event.target.value)
       const updatedItem = {
@@ -38,6 +37,14 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
       }
       handleUpdateItem(updatedItem)
     }
+  }
+
+  const handleOpenDialog = () => {
+    setOpenDeleteDialog(true)
+  }
+
+  const handleCloseDialog = () => {
+    setOpenDeleteDialog(false)
   }
 
   return (
@@ -53,11 +60,12 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
       },
       gap: '1em'
     }}>
+      <DeleteItemDialog open={openDeleteDialog} itemName={item_name} onDeleteClick={handleDeleteItem} onCancelClick={handleCloseDialog} />
       <Box >
         <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
         {
           isMobile ?
-            <IconButton onClick={() => handleDeleteItem()} color='blue'>
+            <IconButton onClick={handleOpenDialog} color='blue'>
               <DeleteIcon color='blue' />
             </IconButton>
             : <></>
@@ -76,12 +84,11 @@ export default function ItemInfoField ({ fridge_item, handleDeleteItem, handleUp
       <Box>
         {
           !isMobile ?
-            <IconButton onClick={() => handleDeleteItem()} color='blue'>
+            <IconButton onClick={handleOpenDialog} color='blue'>
               <DeleteIcon color='blue' />
             </IconButton>
             : <></>
         }
-
       </Box>
     </Box>
   );

@@ -12,10 +12,9 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
-const device_ip = "localhost";
 
-export default function LaptopPage ({ setIsAuthenticated })
-{
+
+export default function LaptopPage({ setIsAuthenticated }) {
     const [relevantTexts, setRelevantTexts] = useState([])
     const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
@@ -27,8 +26,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     const userEmail = decoded.email
     console.log('decoded', decoded)
 
-    const callFetchItemsApi = async () =>
-    {
+    const callFetchItemsApi = async () => {
         const apiUrl = `https://1li9sdgxv3.execute-api.us-east-1.amazonaws.com/prod/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
@@ -53,18 +51,15 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    useEffect(() =>
-    {
-        const fetchData = async () =>
-        {
+    useEffect(() => {
+        const fetchData = async () => {
             console.log('trying to fetch data in useEffect')
             await callFetchItemsApi()
         }
         fetchData()
     }, [])
 
-    const callPutItemApi = async (item) =>
-    {
+    const callPutItemApi = async (item) => {
         const { item_id, item_name, expiry_date, timestamp, user_email } = item
         const apiUrl = `https://ymyr2o2ex8.execute-api.us-east-1.amazonaws.com/prod/WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
@@ -107,8 +102,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         console.log('fridge items after adding item', fridgeItems)
     }
 
-    const handleUpdateItem = async (item_to_update) =>
-    {
+    const handleUpdateItem = async (item_to_update) => {
         const { item_id, item_name, expiry_date, timestamp } = item_to_update
 
         const updated_item = {
@@ -128,8 +122,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, timestamp, email) =>
-    {
+    const handleDeleteItem = async (id, timestamp, email) => {
         const apiUrl = `https://zhiet2z5zd.execute-api.us-east-1.amazonaws.com/prod/DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
@@ -148,8 +141,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    const callUploadPhotoApi = async (base64Image) =>
-    {
+    const callUploadPhotoApi = async (base64Image) => {
         const apiUrl = `https://7lyb190wdk.execute-api.us-east-1.amazonaws.com/prod/capturePhoto/item`
 
         try {
@@ -175,8 +167,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    const handleClickPicture = (event) =>
-    {
+    const handleClickPicture = (event) => {
         const file = event.target.files[0]
 
         if (file) {
@@ -184,8 +175,7 @@ export default function LaptopPage ({ setIsAuthenticated })
             const reader = new FileReader()
             reader.readAsDataURL(file) //convert to base64 encoding
             let resJson
-            reader.onload = async () =>
-            {
+            reader.onload = async () => {
                 //call API
                 resJson = await callUploadPhotoApi(reader.result)
                 if (resJson && resJson.TextDetections) {
@@ -195,8 +185,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    const findRelevantTexts = () =>
-    {
+    const findRelevantTexts = () => {
         const foundTexts = []
         let targetIndex = -1;
         for (let i = 0; i < detectedTexts.length; i++) {
@@ -214,23 +203,20 @@ export default function LaptopPage ({ setIsAuthenticated })
         setRelevantTexts(foundTexts)
     }
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         if (detectedTexts.length > 0) {
             console.log('detectedTexts has changed')
             findRelevantTexts()
         }
     }, [detectedTexts])
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         console.log('relevant texts', relevantTexts)
         console.log('adding to text after extraction')
         addToTableAfterTextract()
     }, [relevantTexts])
 
-    const addToTableAfterTextract = async () =>
-    {
+    const addToTableAfterTextract = async () => {
         //for this example format: 'best jan 23 2026' 
         // hard coded array of regular expressions
         let regExpressions = [/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{1,2} \d{4}/i,]
@@ -263,8 +249,7 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    const handleClickLogout = () =>
-    {
+    const handleClickLogout = () => {
         localStorage.removeItem('user_token')
         setIsAuthenticated(false)
         navigate('/fridge-log')
@@ -299,8 +284,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                     gap: '1.5em'
                 }}>
                     {
-                        fridgeItems.map((item, index) =>
-                        {
+                        fridgeItems.map((item, index) => {
                             return (
                                 <ItemInfoField
                                     key={item.item_id + index}
