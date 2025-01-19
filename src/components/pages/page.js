@@ -16,7 +16,7 @@ import { LogoutOutlined } from '@mui/icons-material';
 
 export default function LaptopPage ({ setIsAuthenticated })
 {
-    const [relevantTexts, setRelevantTexts] = useState([])
+    const [relevantTexts, setRelevantTexts] = useState(null)
     const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
     const innerWidth = window.innerWidth
@@ -25,7 +25,6 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
-    console.log('decoded', decoded)
 
     const callFetchItemsApi = async () =>
     {
@@ -151,6 +150,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     const callUploadPhotoApi = async (base64Image) =>
     {
         const apiUrl = `https://7lyb190wdk.execute-api.us-east-1.amazonaws.com/prod/capturePhoto/item`
+        const testApiUrl = `http://172.23.0.162:8080/capturePhoto/item`
 
         try {
             const res = await fetch(apiUrl,
@@ -168,7 +168,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                 return resJson
             }
             else {
-                console.log('failure response from callUploadPhotoApi', res)
+                console.log('failure response from callUploadPhotoApi', res.body)
             }
         } catch (error) {
             console.error('error in callUploadPhotoApi', error)
@@ -180,7 +180,6 @@ export default function LaptopPage ({ setIsAuthenticated })
         const file = event.target.files[0]
 
         if (file) {
-            console.log('photo captured', file)
             const reader = new FileReader()
             reader.readAsDataURL(file) //convert to base64 encoding
             let resJson
@@ -188,79 +187,104 @@ export default function LaptopPage ({ setIsAuthenticated })
             {
                 //call API
                 resJson = await callUploadPhotoApi(reader.result)
-                if (resJson && resJson.TextDetections) {
-                    setDetectedTexts(resJson.TextDetections)
+                if (resJson) {
+                    setDetectedTexts(resJson.answer) // going to be a single word
+                    setRelevantTexts(resJson.answer)
                 }
             }
         }
     }
 
-    const findRelevantTexts = () =>
-    {
-        const foundTexts = []
-        let targetIndex = -1;
-        for (let i = 0; i < detectedTexts.length; i++) {
-            let word = detectedTexts[i].DetectedText.toLowerCase()
-            if (word.includes("exp") || word.includes("manufacture date") || word.includes("used b") || word.includes("use before") || word.includes("best b") || word.includes("best")) {
-                console.log('found word with exp or manuf:', word)
-                targetIndex = i;
-            }
+    // const findRelevantTexts = () =>
+    // {
+    //     console.log('entering findRelevantTexts')
+    //     const foundTexts = []
+    //     let targetIndex = -1;
+    //     for (let i = 0; i < detectedTexts.length; i++) {
+    //         let word = detectedTexts[i]
+    //         //if (word.includes("exp") || word.includes("manufacture date") || word.includes("used b") || word.includes("use before") || word.includes("best b") || word.includes("best")) {
+    //         if (word) {
+    //             console.log('found word with exp or manuf:', word)
+    //             targetIndex = i;
+    //         }
 
-            if (targetIndex !== -1 && i <= targetIndex + 2) {
-                foundTexts.push(word)
-                console.log('pushing word into foundTexts', word)
-            }
-        }
-        setRelevantTexts(foundTexts)
-    }
+    //         if (targetIndex !== -1 && i <= targetIndex + 2) {
+    //             foundTexts.push(word)
+    //             console.log('pushing word into foundTexts', word)
+    //         }
+    //     }
+    //     setRelevantTexts(foundTexts)
+    // }
+
+    // useEffect(() =>
+    // {
+    //     if (detectedTexts.length > 0) {
+    //         console.log('detectedTexts has changed')
+    //         findRelevantTexts()
+    //     }
+    // }, [detectedTexts])
 
     useEffect(() =>
     {
-        if (detectedTexts.length > 0) {
-            console.log('detectedTexts has changed')
-            findRelevantTexts()
+        if (relevantTexts) {
+            console.log('relevant texts', relevantTexts)
+            console.log('adding to text after extraction')
+            addToTableAfterTextract()
         }
-    }, [detectedTexts])
-
-    useEffect(() =>
-    {
-        console.log('relevant texts', relevantTexts)
-        console.log('adding to text after extraction')
-        addToTableAfterTextract()
     }, [relevantTexts])
 
     const addToTableAfterTextract = async () =>
     {
         //for this example format: 'best jan 23 2026' 
         // hard coded array of regular expressions
-        let regExpressions = [/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \b([1-9]|[12][0-9]|3[01]) \d{4}/i, /\b([1-9]|1[0-2]) \d{4}/i,]
-        if (relevantTexts.length > 0) {
-            let relevantDateStr = relevantTexts[0] + relevantTexts[1]
+        let regExpressions = [/(january|february|march|april|may|june|july|august|september|october|november|december) \b([1-9]|[12][0-9]|3[01]) \d{4}/i, /\b([1-9]|1[0-2]) \d{4}/i,
+
+        ]
+
+        if (relevantTexts) {
+            let relevantDateStr = relevantTexts
             console.log('relevantDateStr:', relevantDateStr)
-            for (let i = 0; i < regExpressions.length; ++i) {
-                const dateMatch = relevantDateStr.match(regExpressions[i])
 
-                if (dateMatch) {
-                    const dateString = dateMatch[0]
-                    console.log('date string:', dateString)
-                    const dateObject = new Date(dateString)
-                    console.log('date object', dateObject)
-                    console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
+            const dateObject = new Date(relevantDateStr)
+            console.log('date object', dateObject)
+            console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
 
-                    const currentDate = dayjs().hour(12)
-                    const daysjsDate = dayjs(dateObject).hour(12)
-                    const item = {
-                        item_id: uuidv4(),
-                        user_email: userEmail,
-                        item_name: "",
-                        expiry_date: daysjsDate.unix(),
-                        timestamp: currentDate.unix()
-                    }
-                    await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
-                    break
-                }
+            const currentDate = dayjs().hour(12)
+            const daysjsDate = dayjs(dateObject).hour(12)
+            const item = {
+                item_id: uuidv4(),
+                user_email: userEmail,
+                item_name: "",
+                expiry_date: daysjsDate.unix(),
+                timestamp: currentDate.unix()
             }
+            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
         }
+
+        //     for (let i = 0; i < regExpressions.length; ++i) { // match word with relevant text
+        //         const dateMatch = relevantDateStr.match(regExpressions[i])
+
+        //         if (dateMatch) {
+        //             const dateString = dateMatch[0]
+        //             console.log('date string:', dateString)
+        //             const dateObject = new Date(dateString)
+        //             console.log('date object', dateObject)
+        //             console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
+
+        //             const currentDate = dayjs().hour(12)
+        //             const daysjsDate = dayjs(dateObject).hour(12)
+        //             const item = {
+        //                 item_id: uuidv4(),
+        //                 user_email: userEmail,
+        //                 item_name: "",
+        //                 expiry_date: daysjsDate.unix(),
+        //                 timestamp: currentDate.unix()
+        //             }
+        //             await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
+        //             break
+        //         }
+        //     }
+        // }
     }
 
     const handleClickLogout = () =>
