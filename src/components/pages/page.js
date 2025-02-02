@@ -43,7 +43,8 @@ export default function LaptopPage ({ setIsAuthenticated })
                 console.log('OK respose received from callFetchItemsApi:', res)
                 console.log('res body:', res.body)
                 console.log('data', data)
-                setFridgeItems(data.Items)
+                const sortedData = data.Items.sort((a, b) => a.expiry_date - b.expiry_date)
+                setFridgeItems(sortedData)
                 console.log('items', data.Items)
             }
             else console.error('callFetchItemsApi call failed in page.js')
@@ -195,34 +196,6 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
     }
 
-    // const findRelevantTexts = () =>
-    // {
-    //     console.log('entering findRelevantTexts')
-    //     const foundTexts = []
-    //     let targetIndex = -1;
-    //     for (let i = 0; i < detectedTexts.length; i++) {
-    //         let word = detectedTexts[i]
-    //         //if (word.includes("exp") || word.includes("manufacture date") || word.includes("used b") || word.includes("use before") || word.includes("best b") || word.includes("best")) {
-    //         if (word) {
-    //             console.log('found word with exp or manuf:', word)
-    //             targetIndex = i;
-    //         }
-
-    //         if (targetIndex !== -1 && i <= targetIndex + 2) {
-    //             foundTexts.push(word)
-    //             console.log('pushing word into foundTexts', word)
-    //         }
-    //     }
-    //     setRelevantTexts(foundTexts)
-    // }
-
-    // useEffect(() =>
-    // {
-    //     if (detectedTexts.length > 0) {
-    //         console.log('detectedTexts has changed')
-    //         findRelevantTexts()
-    //     }
-    // }, [detectedTexts])
 
     useEffect(() =>
     {
