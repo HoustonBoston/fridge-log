@@ -17,7 +17,7 @@ export default function LoginPage ({ setIsAuthenicated })
         console.log('checking email in DDB')
         const decoded = jwtDecode(localStorage.getItem('user_token'))
         const userEmail = decoded.email
-        const apiUrl = `https://9mjp9t9wpa.execute-api.us-east-1.amazonaws.com/prod/checkEmailExistence/email?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
+        const apiUrl = `https://9mjp9t9wpa.execute-api.us-east-1.amazonaws.com/prod/checkEmailExistence/email?email=${userEmail}` //api gw invoke url
         console.log('trying to call check email existence API')
 
         try {

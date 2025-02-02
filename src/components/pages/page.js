@@ -208,12 +208,6 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     const addToTableAfterTextract = async () =>
     {
-        //for this example format: 'best jan 23 2026' 
-        // hard coded array of regular expressions
-        let regExpressions = [/(january|february|march|april|may|june|july|august|september|october|november|december) \b([1-9]|[12][0-9]|3[01]) \d{4}/i, /\b([1-9]|1[0-2]) \d{4}/i,
-
-        ]
-
         if (relevantTexts) {
             let relevantDateStr = relevantTexts
             console.log('relevantDateStr:', relevantDateStr)
@@ -233,31 +227,6 @@ export default function LaptopPage ({ setIsAuthenticated })
             }
             await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
         }
-
-        //     for (let i = 0; i < regExpressions.length; ++i) { // match word with relevant text
-        //         const dateMatch = relevantDateStr.match(regExpressions[i])
-
-        //         if (dateMatch) {
-        //             const dateString = dateMatch[0]
-        //             console.log('date string:', dateString)
-        //             const dateObject = new Date(dateString)
-        //             console.log('date object', dateObject)
-        //             console.log('day:', dateObject.getDate(), 'month:', dateObject.getMonth() + 1, 'year:', dateObject.getFullYear())
-
-        //             const currentDate = dayjs().hour(12)
-        //             const daysjsDate = dayjs(dateObject).hour(12)
-        //             const item = {
-        //                 item_id: uuidv4(),
-        //                 user_email: userEmail,
-        //                 item_name: "",
-        //                 expiry_date: daysjsDate.unix(),
-        //                 timestamp: currentDate.unix()
-        //             }
-        //             await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
-        //             break
-        //         }
-        //     }
-        // }
     }
 
     const handleClickLogout = () =>
