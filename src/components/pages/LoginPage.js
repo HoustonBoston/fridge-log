@@ -1,7 +1,7 @@
 import React from "react"
 import { GoogleLogin } from "@react-oauth/google"
 import { useNavigate } from "react-router-dom"
-import { Box, Typography, Card, CardContent } from "@mui/material"
+import { Box, Typography, Card } from "@mui/material"
 
 import { jwtDecode } from "jwt-decode"
 

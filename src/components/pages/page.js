@@ -12,6 +12,8 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
+import './List.css'
+
 
 
 export default function LaptopPage ({ setIsAuthenticated })
@@ -268,13 +270,15 @@ export default function LaptopPage ({ setIsAuthenticated })
                         fridgeItems.map((item, index) =>
                         {
                             return (
-                                <ItemInfoField
-                                    key={item.item_id + index}
-                                    fridge_item={item}
-                                    handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
-                                    handleUpdateItem={handleUpdateItem}
-                                    isMobile={isMobile}
-                                />
+                                <div className='list-item'>
+                                    <ItemInfoField
+                                        key={item.item_id + index}
+                                        fridge_item={item}
+                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
+                                        handleUpdateItem={handleUpdateItem}
+                                        isMobile={isMobile}
+                                    />
+                                </div>
                             )
                         }
                         )

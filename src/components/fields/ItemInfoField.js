@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { Box, IconButton, TextField, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete'
-import { DateField, DatePicker, LocalizationProvider, } from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider, } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import DeleteItemDialog from '../dialog/DeleteItemDialog';
