@@ -173,6 +173,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     }
 
     const handleDeleteItem = async (id, timestamp, email, index) =>
+    const handleDeleteItem = async (id, timestamp, email, index) =>
     {
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
@@ -192,6 +193,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                 onComplete: () => {
                     // After fade out, remove from state and animate remaining items
                     setFridgeItems((prevItems) => {
+                        const newItems = prevItems.filter((item) => item.item_id !== id)
                         // Schedule Flip animation for next render
                         requestAnimationFrame(() => {
                             if (listRef.current) {
@@ -202,7 +204,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 })
                             }
                         })
-                        const newItems = prevItems.filter((item) => item.item_id !== id)
                         return newItems
                     })
                 }
@@ -361,9 +362,11 @@ export default function LaptopPage ({ setIsAuthenticated })
                 )
             }
 
+
             // Reset the ref so we don't re-animate on other state changes
             lastAddedIndex.current = null
         }
+    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
     }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
     return (
@@ -399,6 +402,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                                     <ItemInfoField
                                         fridge_item={item}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
+                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
                                         isMobile={isMobile}
                                     />
@@ -415,3 +419,4 @@ export default function LaptopPage ({ setIsAuthenticated })
         </>
     )
 }
+
