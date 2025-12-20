@@ -28,7 +28,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     // Use ref to keep track of last added item's index
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
-    const flipStateRef = useRef(null)
+    let flipStateRef = useRef(null)
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
     const navigate = useNavigate()
@@ -145,11 +145,45 @@ export default function LaptopPage ({ setIsAuthenticated })
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, timestamp, email) =>
+    const handleDeleteItem = async (id, timestamp, email, index) =>
     {
         const apiUrl = `https://zhiet2z5zd.execute-api.us-east-1.amazonaws.com/prod/DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
-        setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
+        
+        const elementToRemove = listRef.current?.children[index]
+        
+        if (elementToRemove) {
+            // Capture positions of all items before animation
+            const flipState = Flip.getState('.list-item')
+            
+            // Animate the element fading out
+            gsap.to(elementToRemove, {
+                opacity: 0,
+                x: -50,
+                duration: 0.3,
+                ease: 'power2.out',
+                onComplete: () => {
+                    // After fade out, remove from state and animate remaining items
+                    setFridgeItems((prevItems) => {
+                        const newItems = prevItems.filter((item) => item.item_id !== id)
+                        // Schedule Flip animation for next render
+                        requestAnimationFrame(() => {
+                            if (listRef.current) {
+                                Flip.from(flipState, {
+                                    duration: 0.3,
+                                    ease: 'power2.out',
+                                    targets: '.list-item',
+                                })
+                            }
+                        })
+                        return newItems
+                    })
+                }
+            })
+        } else {
+            // Fallback: just remove without animation
+            setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
+        }
 
         try {
             const res = await fetch(apiUrl, {
@@ -287,13 +321,11 @@ export default function LaptopPage ({ setIsAuthenticated })
                     { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
                 )
             }
-            
+
             // Reset the ref so we don't re-animate on other state changes
             lastAddedIndex.current = null
         }
-
-        // TODO: animate removal of an item
-    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes 
+    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
     return (
         <>
@@ -330,7 +362,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
                                     <ItemInfoField
                                         fridge_item={item}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
+                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
                                         isMobile={isMobile}
                                     />
