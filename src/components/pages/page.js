@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
@@ -12,15 +12,23 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
-import './List.css'
+import { gsap } from "gsap"
+import {Flip} from "gsap/Flip"
+import {useGSAP} from "@gsap/react"
 
+// Register Flip plugin
+gsap.registerPlugin(Flip)
 
 
 export default function LaptopPage ({ setIsAuthenticated })
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
-    const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
+    const listRef = useRef(null)
+    // Use ref to keep track of last added item's index
+    let lastAddedIndex = useRef(null)
+    // Store Flip state before DOM changes
+    const flipStateRef = useRef(null)
     const innerWidth = window.innerWidth
     const isMobile = innerWidth < 900
     const navigate = useNavigate()
@@ -28,6 +36,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
 
+    // runs on page load or refresh
     const callFetchItemsApi = async () =>
     {
         const apiUrl = `https://1li9sdgxv3.execute-api.us-east-1.amazonaws.com/prod/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
@@ -99,7 +108,13 @@ export default function LaptopPage ({ setIsAuthenticated })
             timestamp: dayjs().unix()
         }
 
+        // Capture current positions before DOM updates
+        if (listRef.current) {
+            flipStateRef.current = Flip.getState('.list-item',)
+        }
+
         setFridgeItems([item, ...fridgeItems])
+        lastAddedIndex.current = 0;
 
         console.log('adding new item', item)
 
@@ -191,7 +206,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                 //call API
                 resJson = await callUploadPhotoApi(reader.result)
                 if (resJson) {
-                    setDetectedTexts(resJson.answer) // going to be a single word
                     setRelevantTexts(resJson.answer)
                 }
             }
@@ -227,7 +241,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                 expiry_date: daysjsDate.unix(),
                 timestamp: currentDate.unix()
             }
-            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
+            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems])).then(lastAddedIndex.current = 0)
         }
     }
 
@@ -237,6 +251,49 @@ export default function LaptopPage ({ setIsAuthenticated })
         setIsAuthenticated(false)
         navigate('/fridge-log')
     }
+
+    // useGSAP hook handles animations and cleanup
+    useGSAP(() => {
+        // If a new item was just added, animate its entry and move other items
+        if (lastAddedIndex.current !== null && listRef.current) {
+            const newItemElement = listRef.current.children[lastAddedIndex.current]
+            
+            // Animate existing items moving down using Flip
+            if (flipStateRef.current && newItemElement) {
+                // Hide the new item initially
+                gsap.set(newItemElement, { opacity: 0, y: -30 })
+                
+                // 1. First: Slide down existing items to make space
+                Flip.from(flipStateRef.current, {
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    targets: '.list-item:not(:first-child)', // Exclude new item from Flip
+                    onComplete: () => {
+                        // 2. Then: Animate the new item entry
+                        gsap.to(newItemElement, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.3,
+                            ease: 'power2.out'
+                        })
+                    }
+                })
+                flipStateRef.current = null
+            } else if (newItemElement) {
+                // Fallback: just animate the new item
+                gsap.fromTo(
+                    newItemElement,
+                    { opacity: 0, y: -30 },
+                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+                )
+            }
+            
+            // Reset the ref so we don't re-animate on other state changes
+            lastAddedIndex.current = null
+        }
+
+        // TODO: animate removal of an item
+    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes 
 
     return (
         <>
@@ -256,7 +313,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                         <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
                     </Box>
                 </Box>
-                <Box sx={{
+                <Box ref={listRef} sx={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -270,9 +327,8 @@ export default function LaptopPage ({ setIsAuthenticated })
                         fridgeItems.map((item, index) =>
                         {
                             return (
-                                <div className='list-item'>
+                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
                                     <ItemInfoField
-                                        key={item.item_id + index}
                                         fridge_item={item}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
                                         handleUpdateItem={handleUpdateItem}
