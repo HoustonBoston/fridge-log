@@ -77,7 +77,7 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
           <DatePicker value={expiryDate} label="Expiry date" onAccept={handleExpiryDateChange} />
         </LocalizationProvider>
         <Typography sx={{ pt: '2%', marginLeft: "10px" }}>
-           {(expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days') === 1) ? "1 day left" : `${expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days')} days left`}
+          {(expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days') === 1) ? "1 day left" : `${expiryDate.tz('America/New_York').startOf('day').diff(dayjs().tz('America/New_York').startOf('day'), 'days')} days left`}
         </Typography>
       </Box>
 
