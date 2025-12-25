@@ -167,7 +167,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                 onComplete: () => {
                     // After fade out, remove from state and animate remaining items
                     setFridgeItems((prevItems) => {
-                        const newItems = prevItems.filter((item) => item.item_id !== id)
                         // Schedule Flip animation for next render
                         requestAnimationFrame(() => {
                             if (listRef.current) {
@@ -178,6 +177,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 })
                             }
                         })
+                        const newItems = prevItems.filter((item) => item.item_id !== id)
                         return newItems
                     })
                 }
