@@ -31,8 +31,21 @@ export default function LaptopPage ({ setIsAuthenticated })
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
-    const innerWidth = window.innerWidth
-    const isMobile = innerWidth < 900
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 500);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup function to remove the event listener
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []); // Empty dependency array ensures it runs once on mount
+    
     const navigate = useNavigate()
 
     const decoded = jwtDecode(localStorage.getItem('user_token'))
@@ -350,8 +363,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    //padding: isMobile ? '16px' : '0',
-                    //marginTop: isMobile ? '16px' : 0,
                     width: '100%',
                     justifyContent: 'center',
                     gap: '1.5em'
