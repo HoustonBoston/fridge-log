@@ -52,12 +52,7 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
       display: "flex",
       justifyContent: "center",
       alignItems: 'start',
-      flexDirection: {
-        lg: "row",
-        md: "row",
-        sm: "column",
-        xs: "column"
-      },
+      flexDirection: isMobile? 'column' : "row",
       gap: '1em'
     }}>
       <DeleteItemDialog open={openDeleteDialog} itemName={item_name} onDeleteClick={handleDeleteItem} onCancelClick={handleCloseDialog} />

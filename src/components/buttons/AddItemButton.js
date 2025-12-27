@@ -16,7 +16,7 @@ export default function AddItemButton({ handleAddItem, isMobile, handleClickPict
                 <Box sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', gap: '0.5em' }} >
                     <AddTask color='blue' />
                     <Typography>
-                        Add an item
+                        Add item
                     </Typography>
                 </Box>
             </Button>
@@ -41,7 +41,7 @@ export default function AddItemButton({ handleAddItem, isMobile, handleClickPict
                         }}>
                         <PhotoCamera />
                         <Typography>
-                            Take a picture (BETA)
+                            Camera
                         </Typography>
                     </IconButton>
                 </Box>
