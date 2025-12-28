@@ -314,7 +314,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                 Flip.from(flipStateRef.current, {
                     duration: 0.3,
                     ease: 'power2.out',
-                    targets: '.list-item:not(:first-child)', // Exclude new item from Flip
+                    targets: '.list-item:not(:first-child)',  // Exclude new item from Flip
                     onComplete: () => {
                         // 2. Then: Animate the new item entry
                         gsap.to(newItemElement, {
