@@ -24,6 +24,8 @@ export default function LaptopPage ({ setIsAuthenticated })
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
     const [fridgeItems, setFridgeItems] = useState([])
+    const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
+    const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing    
     const listRef = useRef(null)
     // Use ref to keep track of last added item's index
     let lastAddedIndex = useRef(null)
@@ -100,10 +102,15 @@ export default function LaptopPage ({ setIsAuthenticated })
 
             if (res.ok) {
                 console.log('OK response from callPutItemApi', res)
+                return true  // Return success
             }
-            else console.error('callPutItemApi error', res)
+            else {
+                console.error('callPutItemApi error', res)
+                return false  // Return failure
+            }
         } catch (error) {
             console.log('catching callPutItemApi error:', error)
+            return false  // Return failure on exception
         }
     }
 
@@ -131,8 +138,12 @@ export default function LaptopPage ({ setIsAuthenticated })
 
         console.log('adding new item', item)
 
-        await callPutItemApi(item)
-
+        // Call API and update FAB status based on result
+        const success = await callPutItemApi(item)
+        setFabStatus(success ? 'success' : 'error')
+        
+        // Reset FAB status back to idle after 500ms
+        setTimeout(() => setFabStatus('idle'), 500)
 
         console.log('fridge items after adding item', fridgeItems)
     }
@@ -250,10 +261,23 @@ export default function LaptopPage ({ setIsAuthenticated })
             let resJson
             reader.onload = async () =>
             {
-                //call API
-                resJson = await callUploadPhotoApi(reader.result)
-                if (resJson) {
-                    setRelevantTexts(resJson.answer)
+                //call API - show loading spinner while processing
+                setIsProcessingPhoto(true)
+                try {
+                    resJson = await callUploadPhotoApi(reader.result)
+                    if (resJson) {
+                        setRelevantTexts(resJson.answer)
+                        setFabStatus('success')
+                    } else {
+                        setFabStatus('error')
+                    }
+                } catch (error) {
+                    console.error('Error processing photo:', error)
+                    setFabStatus('error')
+                } finally {
+                    setIsProcessingPhoto(false)
+                    // Reset status after 500ms
+                    setTimeout(() => setFabStatus('idle'), 500)
                 }
             }
         }
@@ -342,7 +366,7 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     return (
         <>
-            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column' }}>
+            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
                 <Box sx={{
                     display: 'flex',            // Use flexbox for layout
                     justifyContent: 'center',   // Center the entire layout horizontally
@@ -355,7 +379,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 <LogoutOutlined />
                             </Button>
                         </Box>
-                        <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
                     </Box>
                 </Box>
                 <Box ref={listRef} sx={{
@@ -384,6 +407,9 @@ export default function LaptopPage ({ setIsAuthenticated })
                     }
                 </Box >
             </Box>
+            
+            {/* Floating Action Button in bottom right */}
+            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
         </>
     )
 }
