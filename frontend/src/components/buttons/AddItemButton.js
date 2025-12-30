@@ -101,16 +101,13 @@ export default function AddItemButton({ handleAddItem, handleClickPicture, statu
 
             {/* Camera button - appears first (top) when menu is expanded */}
             {/* Zoom animation with 100ms delay for staggered effect */}
-            <Zoom in={open} style={{ transitionDelay: open ? '100ms' : '0ms' }}>
+            <Zoom in={open} style={{ transitionDelay: '100ms' }} unmountOnExit>
                 <Tooltip title="Camera" placement="left">
                     <Fab
                         size="small"
                         color="secondary"
                         aria-label="camera"
                         onClick={handleOpenFileDialog}
-                        sx={{ 
-                            display: open ? 'flex' : 'none',  // Hide when menu closed
-                        }}
                     >
                         <PhotoCamera />
                     </Fab>
@@ -119,7 +116,7 @@ export default function AddItemButton({ handleAddItem, handleClickPicture, statu
 
             {/* Add Item button - appears second when menu is expanded */}
             {/* Zoom animation with 50ms delay (appears slightly before camera) */}
-            <Zoom in={open} style={{ transitionDelay: open ? '50ms' : '0ms' }}>
+            <Zoom in={open} style={{ transitionDelay: '50ms' }} unmountOnExit>
                 <Tooltip title="Add Item" placement="left">
                     <Fab
                         size="small"
@@ -127,9 +124,6 @@ export default function AddItemButton({ handleAddItem, handleClickPicture, statu
                         aria-label="add item"
                         onClick={handleAddItemClick}
                         onBlur={handleClose}
-                        sx={{ 
-                            display: open ? 'flex' : 'none',  // Hide when menu closed
-                        }}
                     >
                         <AddTask />
                     </Fab>
