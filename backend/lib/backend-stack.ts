@@ -18,7 +18,7 @@ export class BackendStack extends cdk.Stack {
     fridgeItemsTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
     // Lambdas
-    new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
+    const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
       runtime: Runtime.NODEJS_20_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/capture_photo.mjs'),
       handler: 'handler',
@@ -62,7 +62,11 @@ export class BackendStack extends cdk.Stack {
 
 
     // API Gateway
-    new aws_apigateway.LambdaIntegration
+    const CapturePhotoApi = new aws_apigateway.RestApi(this, 'CapturePhotoApi', {
+      restApiName: 'Capture photo API'
+    })
+    const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn)
+    CapturePhotoApi.root.addResource("capturePhoto/item").addMethod("GET", captureIntegration)
 
     // EventBridge
 
