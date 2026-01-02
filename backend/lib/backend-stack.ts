@@ -19,54 +19,63 @@ export class BackendStack extends cdk.Stack {
 
     // Lambdas
     const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/capture_photo.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
-    new aws_lambda_nodejs.NodejsFunction(this, 'CheckEmailExistence', {
-      runtime: Runtime.NODEJS_20_X,
+    const CheckEmailExistenceFn = new aws_lambda_nodejs.NodejsFunction(this, 'CheckEmailExistence', {
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CheckEmailExistence/check_email_existence.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
-    new aws_lambda_nodejs.NodejsFunction(this, 'DeleteItemDDB', {
-      runtime: Runtime.NODEJS_20_X,
+    const deleteItemDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'DeleteItemDDB', {
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/DeleteItemDDB/delete_item.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
-    new aws_lambda_nodejs.NodejsFunction(this, 'ReadDDB', {
-      runtime: Runtime.NODEJS_20_X,
+    const ReadDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'ReadDDB', {
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ReadDDB/read_from_ddb.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
-    new aws_lambda_nodejs.NodejsFunction(this, 'ScanSendNotif', {
-      runtime: Runtime.NODEJS_20_X,
+    const scanSendNotifFn = new aws_lambda_nodejs.NodejsFunction(this, 'ScanSendNotif', {
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ScanSendNotif/scan_send_notif.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
-    new aws_lambda_nodejs.NodejsFunction(this, 'WriteDDB', {
-      runtime: Runtime.NODEJS_20_X,
+    const writeDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'WriteDDB', {
+      runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/WriteDDB/write_to_ddb.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15)
     })
 
+    // Grant Lambdas permissions to DynamoDB
+    fridgeItemsTable.grantReadWriteData(CapturePhotoFn)
+    fridgeItemsTable.grantReadWriteData(CheckEmailExistenceFn)
+    fridgeItemsTable.grantReadData(ReadDDBFn)
+    fridgeItemsTable.grantWriteData(writeDDBFn)
+    fridgeItemsTable.grantReadWriteData(scanSendNotifFn)
+    fridgeItemsTable.grantReadWriteData(deleteItemDDBFn)
 
     // API Gateway
     const CapturePhotoApi = new aws_apigateway.RestApi(this, 'CapturePhotoApi', {
       restApiName: 'Capture photo API'
     })
     const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn, {proxy: true})
-    CapturePhotoApi.root.addResource("capturePhoto/item").addMethod("GET", captureIntegration)
+    const capResource = CapturePhotoApi.root.addResource("capturePhoto/item")
+    capResource.addMethod("OPTIONS")  // for CORS preflight
+    capResource.addMethod("POST", captureIntegration)
 
     // EventBridge
 

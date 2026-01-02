@@ -25,7 +25,7 @@ export const handler = async (event, context) => {
             "statusCode": 200,
             headers: {
                 "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Origin": "*", // Allow from anywhere 
+                "Access-Control-Allow-Origin": "*",  // Allow from anywhere 
                 "Access-Control-Allow-Methods": "GET, OPTIONS"
             },
             body: JSON.stringify(output)
@@ -37,10 +37,10 @@ export const handler = async (event, context) => {
             "statusCode": 500,
             headers: {
                 "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Origin": "*", // Allow from anywhere 
+                "Access-Control-Allow-Origin": "*",  // Allow from anywhere 
                 "Access-Control-Allow-Methods": "GET, OPTIONS"
             },
-            body: JSON.stringify(event)
+            body: JSON.stringify(error)
         }
     }
 }
