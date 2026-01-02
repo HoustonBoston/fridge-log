@@ -65,7 +65,7 @@ export class BackendStack extends cdk.Stack {
     const CapturePhotoApi = new aws_apigateway.RestApi(this, 'CapturePhotoApi', {
       restApiName: 'Capture photo API'
     })
-    const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn)
+    const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn, {proxy: true})
     CapturePhotoApi.root.addResource("capturePhoto/item").addMethod("GET", captureIntegration)
 
     // EventBridge
