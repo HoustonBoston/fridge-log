@@ -78,7 +78,7 @@ export class BackendStack extends cdk.Stack {
       restApiName: 'Capture photo API'
     })
     const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn, {proxy: true})
-    const capResource = CapturePhotoApi.root.addResource("capturePhoto/item")
+    const capResource = CapturePhotoApi.root.addResource("capturePhoto").addResource("item")  // e.g. /products/item
     capResource.addMethod("OPTIONS")  // for CORS preflight
     capResource.addMethod("POST", captureIntegration)
 
@@ -86,7 +86,7 @@ export class BackendStack extends cdk.Stack {
       restApiName: 'Check Email Existence API'
     })
     const checkEmailIntegration = new aws_apigateway.LambdaIntegration(CheckEmailExistenceFn, {proxy: true})
-    const checkEmailResource = CheckEmailExistenceApi.root.addResource("checkEmailExistence/email")
+    const checkEmailResource = CheckEmailExistenceApi.root.addResource("checkEmailExistence").addResource("email")
     checkEmailResource.addMethod("OPTIONS")  // for CORS preflight
     checkEmailResource.addMethod("GET", checkEmailIntegration)
 
@@ -98,7 +98,7 @@ export class BackendStack extends cdk.Stack {
         "integration.request.path.email": "method.request.path.email"
       }
     })
-    const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem/item/{email}")
+    const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem").addResource("item").addResource("{email}")
     deleteItemResource.addMethod("OPTIONS")  // for CORS preflight
     deleteItemResource.addMethod("DELETE", deleteItemIntegration)
 
@@ -106,7 +106,7 @@ export class BackendStack extends cdk.Stack {
       restApiName: 'Read DDB API'
     })
     const getItemsIntegration = new aws_apigateway.LambdaIntegration(ReadDDBFn, {proxy: true})
-    const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB/items")
+    const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB").addResource("item")
     getItemsResource.addMethod("OPTIONS")  // for CORS preflight
     getItemsResource.addMethod("GET", getItemsIntegration)
 
@@ -114,7 +114,7 @@ export class BackendStack extends cdk.Stack {
       restApiName: 'Write to DDB API'
     })
     const putItemIntegration = new aws_apigateway.LambdaIntegration(writeDDBFn, {proxy: true})
-    const putItemResource = PutItemApi.root.addResource("WriteToDDB/putItem")
+    const putItemResource = PutItemApi.root.addResource("WriteToDDB").addResource("putItem")
     putItemResource.addMethod("OPTIONS")  // for CORS preflight
     putItemResource.addMethod("POST", putItemIntegration)
 
