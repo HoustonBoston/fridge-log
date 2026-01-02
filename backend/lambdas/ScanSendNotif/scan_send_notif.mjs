@@ -10,7 +10,7 @@ const tableName = "FridgeLogItem"
 const sesClient = new SESClient({})
 
 /**
- * Scans entire table, stores results in a hashmap, and sends SNS notif to appropriate emails if item expiration is a day or less
+ * Scans entire table, stores results in a hashmap, and sends SES notif to appropriate emails if item expiration is a day or less
  */
 
 export const handler = async () =>

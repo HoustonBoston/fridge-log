@@ -1,8 +1,9 @@
 import * as cdk from 'aws-cdk-lib/core';
 import { Construct } from 'constructs';
-import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway } from 'aws-cdk-lib';
+import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
+import { TargetTrackingScalingPolicy } from 'aws-cdk-lib/aws-applicationautoscaling';
 
 const LAMBDA_PATH = '../lambdas'
 
@@ -16,6 +17,11 @@ export class BackendStack extends cdk.Stack {
       sortKey: {name: 'timestamp', type: aws_dynamodb.AttributeType.NUMBER}
     })
     fridgeItemsTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
+
+    const fridgeLogUserTable = new aws_dynamodb.TableV2(this, 'FridgeLogUser', {
+      partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING}
+    })
+    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
     // Lambdas
     const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
@@ -77,7 +83,48 @@ export class BackendStack extends cdk.Stack {
     capResource.addMethod("OPTIONS")  // for CORS preflight
     capResource.addMethod("POST", captureIntegration)
 
+    const CheckEmailExistenceApi = new aws_apigateway.RestApi(this, 'CheckEmailExistenceApi', {
+      restApiName: 'Check Email Existence API'
+    })
+    const checkEmailIntegration = new aws_apigateway.LambdaIntegration(CheckEmailExistenceFn, {proxy: true})
+    const checkEmailResource = CheckEmailExistenceApi.root.addResource("checkEmailExistence/email")
+    checkEmailResource.addMethod("OPTIONS")  // for CORS preflight
+    checkEmailResource.addMethod("GET", checkEmailIntegration)
+
+    const DeleteItemApi = new aws_apigateway.RestApi(this, 'DeleteItemApi', {
+      restApiName: 'Delete Item API'
+    })
+    const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, {proxy: true,
+      requestParameters: {
+        "integration.request.path.email": "method.request.path.email"
+      }
+    })
+    const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem/item/{email}")
+    deleteItemResource.addMethod("OPTIONS")  // for CORS preflight
+    deleteItemResource.addMethod("DELETE", deleteItemIntegration)
+
+    const GetItemsApi = new aws_apigateway.RestApi(this, 'GetItemsApi', {
+      restApiName: 'Read DDB API'
+    })
+    const getItemsIntegration = new aws_apigateway.LambdaIntegration(ReadDDBFn, {proxy: true})
+    const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB/items")
+    getItemsResource.addMethod("OPTIONS")  // for CORS preflight
+    getItemsResource.addMethod("GET", getItemsIntegration)
+
+    const PutItemApi = new aws_apigateway.RestApi(this, 'PutItemApi', {
+      restApiName: 'Write to DDB API'
+    })
+    const putItemIntegration = new aws_apigateway.LambdaIntegration(writeDDBFn, {proxy: true})
+    const putItemResource = PutItemApi.root.addResource("WriteToDDB/putItem")
+    putItemResource.addMethod("OPTIONS")  // for CORS preflight
+    putItemResource.addMethod("POST", putItemIntegration)
+
     // EventBridge
+    const eventRule = new aws_events.Rule(this, 'SendNotifDailyRule', {
+      schedule: aws_events.Schedule.cron({ minute: '0', hour: '8' }),  // every day at 8:00 AM UTC
+      targets: [new aws_events_targets.LambdaFunction(scanSendNotifFn)]
+    })
+    aws_events_targets.addLambdaPermission(eventRule, scanSendNotifFn)
 
     // SES?
   }
