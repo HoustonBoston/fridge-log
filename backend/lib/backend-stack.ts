@@ -3,7 +3,6 @@ import { Construct } from 'constructs';
 import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
-import { TargetTrackingScalingPolicy } from 'aws-cdk-lib/aws-applicationautoscaling';
 
 const LAMBDA_PATH = '../lambdas'
 
