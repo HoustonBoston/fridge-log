@@ -67,7 +67,7 @@ export class BackendStack extends cdk.Stack {
 
     // Grant Lambdas permissions to DynamoDB
     fridgeItemsTable.grantReadWriteData(CapturePhotoFn)
-    fridgeItemsTable.grantReadWriteData(CheckEmailExistenceFn)
+    fridgeLogUserTable.grantReadWriteData(CheckEmailExistenceFn)
     fridgeItemsTable.grantReadData(ReadDDBFn)
     fridgeItemsTable.grantWriteData(writeDDBFn)
     fridgeItemsTable.grantReadWriteData(scanSendNotifFn)
