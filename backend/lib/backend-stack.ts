@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib/core';
 import { Construct } from 'constructs';
-import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets } from 'aws-cdk-lib';
+import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets, aws_ssm } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
 
@@ -93,11 +93,14 @@ export class BackendStack extends cdk.Stack {
     const DeleteItemApi = new aws_apigateway.RestApi(this, 'DeleteItemApi', {
       restApiName: 'Delete Item API'
     })
-    const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, {proxy: true,
-      requestParameters: {
-        "integration.request.path.email": "method.request.path.email"
+    const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, 
+      {
+        proxy: true,
+        requestParameters: {
+          "integration.request.path.email": "method.request.path.email"
+        }
       }
-    })
+  )
     const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem").addResource("item").addResource("{email}")
     deleteItemResource.addMethod("OPTIONS")  // for CORS preflight
     deleteItemResource.addMethod("DELETE", deleteItemIntegration)
@@ -124,6 +127,32 @@ export class BackendStack extends cdk.Stack {
       targets: [new aws_events_targets.LambdaFunction(scanSendNotifFn)]
     })
     aws_events_targets.addLambdaPermission(eventRule, scanSendNotifFn)
+
+    // SSM
+    new aws_ssm.StringParameter(this, 'CapturePhotoApiUrlParam', {
+      parameterName: '/fridge-log/capture-photo-api-url',
+      stringValue: CapturePhotoApi.url
+    })
+
+    new aws_ssm.StringParameter(this, 'CheckEmailExistenceApiUrlParam', {
+      parameterName: '/fridge-log/check-email-existence-api-url',
+      stringValue: CheckEmailExistenceApi.url
+    })
+
+    new aws_ssm.StringParameter(this, 'DeleteItemApiUrlParam', {
+      parameterName: '/fridge-log/delete-item-api-url',
+      stringValue: DeleteItemApi.url
+    })
+
+    new aws_ssm.StringParameter(this, 'GetItemsApiUrlParam', {
+      parameterName: '/fridge-log/get-items-api-url',
+      stringValue: GetItemsApi.url
+    })
+
+    new aws_ssm.StringParameter(this, 'PutItemApiUrlParam', {
+      parameterName: '/fridge-log/put-item-api-url',
+      stringValue: PutItemApi.url
+    })
 
     // SES?
   }
