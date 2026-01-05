@@ -21,11 +21,11 @@ export class BackendStack extends cdk.Stack {
     super(scope, id, props);
 
     // DynamoDB - Import existing tables
-    const fridgeItemsTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogItem', 'FridgeLogItem')
-    const fridgeLogUserTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogUser', 'FridgeLogUser')
+    // const fridgeItemsTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogItem', 'FridgeLogItem')
+    // const fridgeLogUserTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogUser', 'FridgeLogUser')
 
     // DynamoDB
-    /*const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
+    const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
       tableName: 'FridgeLogItem',
       partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING},
       sortKey: {name: 'timestamp', type: aws_dynamodb.AttributeType.NUMBER}
@@ -36,7 +36,7 @@ export class BackendStack extends cdk.Stack {
       tableName: 'FridgeLogUser',
       partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING}
     })
-    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal*/
+    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
     // Lambdas
     const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
@@ -57,7 +57,8 @@ export class BackendStack extends cdk.Stack {
       entry: path.join(__dirname, LAMBDA_PATH + '/CheckEmailExistence/check_email_existence.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15),
-      bundling: bundlingOptions
+      bundling: bundlingOptions,
+      functionName: 'CheckEmailExistence'
     })
 
     const deleteItemDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'DeleteItemDDB', {
