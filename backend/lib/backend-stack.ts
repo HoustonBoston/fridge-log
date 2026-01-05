@@ -6,63 +6,102 @@ import path from 'path';
 
 const LAMBDA_PATH = '../lambdas'
 
+// Bundling options to skip Docker
+const bundlingOptions = {
+  minify: false,
+  sourceMap: false,
+  format: aws_lambda_nodejs.OutputFormat.ESM,
+  mainFields: ['module', 'main'],
+  banner: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+  forceDockerBundling: false,
+}
+
 export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // DynamoDB - Import existing tables
+    const fridgeItemsTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogItem', 'FridgeLogItem')
+    const fridgeLogUserTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogUser', 'FridgeLogUser')
+
     // DynamoDB
-    const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
+    /*const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
+      tableName: 'FridgeLogItem',
       partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING},
       sortKey: {name: 'timestamp', type: aws_dynamodb.AttributeType.NUMBER}
     })
     fridgeItemsTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
     const fridgeLogUserTable = new aws_dynamodb.TableV2(this, 'FridgeLogUser', {
+      tableName: 'FridgeLogUser',
       partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING}
     })
-    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
+    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal*/
 
     // Lambdas
     const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/capture_photo.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: {
+        ...bundlingOptions,
+        nodeModules: ['moondream'],
+      },
+      depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/package-lock.json'),
+      functionName: 'CapturePhoto'
     })
 
     const CheckEmailExistenceFn = new aws_lambda_nodejs.NodejsFunction(this, 'CheckEmailExistence', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CheckEmailExistence/check_email_existence.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: bundlingOptions
     })
 
     const deleteItemDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'DeleteItemDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/DeleteItemDDB/delete_item.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: bundlingOptions,
+      functionName: 'DeleteItemDDB'
     })
 
     const ReadDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'ReadDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ReadDDB/read_from_ddb.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: bundlingOptions,
+      functionName: 'ReadDDB'
     })
 
     const scanSendNotifFn = new aws_lambda_nodejs.NodejsFunction(this, 'ScanSendNotif', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ScanSendNotif/scan_send_notif.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: {
+        ...bundlingOptions,
+        nodeModules: ['dayjs'],
+      },
+      depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/ScanSendNotif/package-lock.json'),
+      functionName: 'ScanSendNotif'
     })
 
     const writeDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'WriteDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/WriteDDB/write_to_ddb.mjs'),
       handler: 'handler',
-      timeout: cdk.Duration.seconds(15)
+      timeout: cdk.Duration.seconds(15),
+      bundling: {
+        ...bundlingOptions,
+        nodeModules: ['uuid', 'dayjs'],
+      },
+      depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/WriteDDB/package-lock.json'),
+      functionName: 'WriteDDB'
     })
 
     // Grant Lambdas permissions to DynamoDB
@@ -93,17 +132,14 @@ export class BackendStack extends cdk.Stack {
     const DeleteItemApi = new aws_apigateway.RestApi(this, 'DeleteItemApi', {
       restApiName: 'Delete Item API'
     })
-    const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, 
-      {
-        proxy: true,
-        requestParameters: {
-          "integration.request.path.email": "method.request.path.email"
-        }
-      }
-  )
+    const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, {proxy: true})
     const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem").addResource("item").addResource("{email}")
     deleteItemResource.addMethod("OPTIONS")  // for CORS preflight
-    deleteItemResource.addMethod("DELETE", deleteItemIntegration)
+    deleteItemResource.addMethod("DELETE", deleteItemIntegration, {
+      requestParameters: {
+        "method.request.path.email": true
+      }
+    })
 
     const GetItemsApi = new aws_apigateway.RestApi(this, 'GetItemsApi', {
       restApiName: 'Read DDB API'
