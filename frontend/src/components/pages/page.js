@@ -140,7 +140,7 @@ export default function LaptopPage ({ setIsAuthenticated })
 
         try {
             const res = await fetch(apiUrl, {
-                method: 'POST'
+                method: 'DELETE'
             })
 
             if (res.ok) {

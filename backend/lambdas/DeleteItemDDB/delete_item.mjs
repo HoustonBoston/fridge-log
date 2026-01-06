@@ -30,7 +30,7 @@ export const handler = async (event, context) => {
             headers: {
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Origin": "*", // Allow from anywhere 
-                "Access-Control-Allow-Methods": "POST, OPTIONS"
+                "Access-Control-Allow-Methods": "DELETE, OPTIONS"
             }
         }
     } catch (error) {
@@ -40,7 +40,7 @@ export const handler = async (event, context) => {
             headers: {
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Origin": "*", // Allow from anywhere 
-                "Access-Control-Allow-Methods": "POST, OPTIONS"
+                "Access-Control-Allow-Methods": "DELETE, OPTIONS"
             },
             body: JSON.stringify(error)
         }
