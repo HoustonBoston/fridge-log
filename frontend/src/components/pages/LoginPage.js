@@ -3,6 +3,8 @@ import { GoogleLogin } from "@react-oauth/google"
 import { useNavigate } from "react-router-dom"
 import { Box, Typography, Card } from "@mui/material"
 
+import urls from "../../urls"
+
 import { jwtDecode } from "jwt-decode"
 
 import image from '../../fridge.png'
@@ -17,7 +19,7 @@ export default function LoginPage ({ setIsAuthenicated })
         console.log('checking email in DDB')
         const decoded = jwtDecode(localStorage.getItem('user_token'))
         const userEmail = decoded.email
-        const apiUrl = `https://9mjp9t9wpa.execute-api.us-east-1.amazonaws.com/prod/checkEmailExistence/email?email=${userEmail}` //api gw invoke url
+        const apiUrl = `${urls.checkEmailExistenceApiUrl}checkEmailExistence/email?email=${userEmail}` //api gw invoke url
         console.log('trying to call check email existence API')
 
         try {
