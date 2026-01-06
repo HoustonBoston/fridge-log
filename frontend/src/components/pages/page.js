@@ -48,34 +48,11 @@ export default function LaptopPage ({ setIsAuthenticated })
         };
     }, []); // Empty dependency array ensures it runs once on mount
     
-    const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
-    const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing    
-    const listRef = useRef(null)
-    // Use ref to keep track of last added item's index
-    let lastAddedIndex = useRef(null)
-    // Store Flip state before DOM changes
-    let flipStateRef = useRef(null)
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 500);
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Cleanup function to remove the event listener
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []); // Empty dependency array ensures it runs once on mount
-    
     const navigate = useNavigate()
 
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
 
-    // runs on page load or refresh
     // runs on page load or refresh
     const callFetchItemsApi = async () =>
     {
@@ -132,15 +109,9 @@ export default function LaptopPage ({ setIsAuthenticated })
             else {
                 console.error('callPutItemApi error', res)
                 return false  // Return failure
-                return true  // Return success
-            }
-            else {
-                console.error('callPutItemApi error', res)
-                return false  // Return failure
             }
         } catch (error) {
             console.log('catching callPutItemApi error:', error)
-            return false  // Return failure on exception
             return false  // Return failure on exception
         }
     }
@@ -164,23 +135,11 @@ export default function LaptopPage ({ setIsAuthenticated })
             flipStateRef.current = Flip.getState('.list-item',)
         }
 
-        // Capture current positions before DOM updates
-        if (listRef.current) {
-            flipStateRef.current = Flip.getState('.list-item',)
-        }
-
         setFridgeItems([item, ...fridgeItems])
-        lastAddedIndex.current = 0;
         lastAddedIndex.current = 0;
 
         console.log('adding new item', item)
 
-        // Call API and update FAB status based on result
-        const success = await callPutItemApi(item)
-        setFabStatus(success ? 'success' : 'error')
-        
-        // Reset FAB status back to idle after 500ms
-        setTimeout(() => setFabStatus('idle'), 500)
         // Call API and update FAB status based on result
         const success = await callPutItemApi(item)
         setFabStatus(success ? 'success' : 'error')
@@ -216,41 +175,6 @@ export default function LaptopPage ({ setIsAuthenticated })
     {
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
-        
-        const elementToRemove = listRef.current?.children[index]
-        
-        if (elementToRemove) {
-            // Capture positions of all items before animation
-            const flipState = Flip.getState('.list-item')
-            
-            // Animate the element fading out
-            gsap.to(elementToRemove, {
-                opacity: 0,
-                x: -50,
-                duration: 0.3,
-                ease: 'power2.out',
-                onComplete: () => {
-                    // After fade out, remove from state and animate remaining items
-                    setFridgeItems((prevItems) => {
-                        // Schedule Flip animation for next render
-                        requestAnimationFrame(() => {
-                            if (listRef.current) {
-                                Flip.from(flipState, {
-                                    duration: 0.3,
-                                    ease: 'power2.out',
-                                    targets: '.list-item',
-                                })
-                            }
-                        })
-                        const newItems = prevItems.filter((item) => item.item_id !== id)
-                        return newItems
-                    })
-                }
-            })
-        } else {
-            // Fallback: just remove without animation
-            setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
-        }
         
         const elementToRemove = listRef.current?.children[index]
         
@@ -460,59 +384,52 @@ export default function LaptopPage ({ setIsAuthenticated })
     }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
     return (
-        <>
-            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-                <Box sx={{
-                    display: 'flex',            // Use flexbox for layout
-                    justifyContent: 'center',   // Center the entire layout horizontally
-                    alignItems: 'center',       // Align items vertically
-                }}>
-                    <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
-                        <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Typography>Welcome, {decoded.name}!</Typography>
-                            <Button onClick={handleClickLogout}>
-                                <LogoutOutlined />
-                            </Button>
+            <>
+                <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
+                    <Box sx={{
+                        display: 'flex',            // Use flexbox for layout
+                        justifyContent: 'center',   // Center the entire layout horizontally
+                        alignItems: 'center',       // Align items vertically
+                    }}>
+                        <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
+                            <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Typography>Welcome, {decoded.name}!</Typography>
+                                <Button onClick={handleClickLogout}>
+                                    <LogoutOutlined />
+                                </Button>
+                            </Box>
                         </Box>
                     </Box>
-                </Box>
-                <Box ref={listRef} sx={{
-                <Box ref={listRef} sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    width: '100%',
-                    justifyContent: 'center',
-                    gap: '1.5em'
-                }}>
-                    {
-                        fridgeItems.map((item, index) =>
+                    <Box ref={listRef} sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%',
+                        justifyContent: 'center',
+                        gap: '1.5em'
+                    }}>
                         {
-                            return (
-                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
-                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
-                                    <ItemInfoField
-                                        fridge_item={item}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
-                                        handleUpdateItem={handleUpdateItem}
-                                        isMobile={isMobile}
-                                    />
-                                </div>
+                            fridgeItems.map((item, index) =>
+                            {
+                                return (
+                                    <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
+                                        <ItemInfoField
+                                            fridge_item={item}
+                                            handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
+                                            handleUpdateItem={handleUpdateItem}
+                                            isMobile={isMobile}
+                                        />
+                                    </div>
+                                )
+                            }
                             )
                         }
-                        )
-                    }
-                </Box >
-            </Box>
-            
-            {/* Floating Action Button in bottom right */}
-            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
-            
-            {/* Floating Action Button in bottom right */}
-            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
-        </>
-    )
+                    </Box >
+                </Box>
+                    
+                {/* Floating Action Button in bottom right */}
+                <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
+            </>
+        )   
+    }
 }
-
