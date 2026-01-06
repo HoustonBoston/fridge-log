@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets, aws_ssm } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
+import { LogGroup, LogRetention, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const LAMBDA_PATH = '../lambdas'
 
@@ -21,24 +22,29 @@ export class BackendStack extends cdk.Stack {
     super(scope, id, props);
 
     // DynamoDB - Import existing tables
-    // const fridgeItemsTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogItem', 'FridgeLogItem')
-    // const fridgeLogUserTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogUser', 'FridgeLogUser')
+    const fridgeItemsTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogItem', 'FridgeLogItem')
+    const fridgeLogUserTable = aws_dynamodb.TableV2.fromTableName(this, 'FridgeLogUser', 'FridgeLogUser')
 
     // DynamoDB
-    const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
-      tableName: 'FridgeLogItem',
-      partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING},
-      sortKey: {name: 'timestamp', type: aws_dynamodb.AttributeType.NUMBER}
-    })
-    fridgeItemsTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
+    // const fridgeItemsTable = new aws_dynamodb.TableV2(this, 'FridgeLogItem', {
+    //   tableName: 'FridgeLogItem',
+    //   partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING},
+    //   sortKey: {name: 'timestamp', type: aws_dynamodb.AttributeType.NUMBER}
+    // })
+    // fridgeItemsTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
-    const fridgeLogUserTable = new aws_dynamodb.TableV2(this, 'FridgeLogUser', {
-      tableName: 'FridgeLogUser',
-      partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING}
-    })
-    fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
+    // const fridgeLogUserTable = new aws_dynamodb.TableV2(this, 'FridgeLogUser', {
+    //   tableName: 'FridgeLogUser',
+    //   partitionKey: {name: 'user_email', type: aws_dynamodb.AttributeType.STRING}
+    // })
+    // fridgeLogUserTable.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN)  // prevent deletion on stack removal
 
-    // Lambdas
+    // Lambdas & their log groups
+    const capturePhotoLogGroup = new LogGroup(this, 'CapturePhotoLogGroup', {
+      logGroupName: `/aws/lambda/CapturePhoto`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const CapturePhotoFn = new aws_lambda_nodejs.NodejsFunction(this, 'CapturePhoto', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/capture_photo.mjs'),
@@ -49,36 +55,60 @@ export class BackendStack extends cdk.Stack {
         nodeModules: ['moondream'],
       },
       depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/package-lock.json'),
-      functionName: 'CapturePhoto'
+      functionName: 'CapturePhoto',
+      logGroup: capturePhotoLogGroup
     })
 
+    const checkEmailExistenceLogGroup = new LogGroup(this, 'CheckEmailExistenceLogGroup', {
+      logGroupName: `/aws/lambda/CheckEmailExistence`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const CheckEmailExistenceFn = new aws_lambda_nodejs.NodejsFunction(this, 'CheckEmailExistence', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/CheckEmailExistence/check_email_existence.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15),
       bundling: bundlingOptions,
-      functionName: 'CheckEmailExistence'
+      functionName: 'CheckEmailExistence',
+      logGroup: checkEmailExistenceLogGroup
     })
-
+    
+    const deleteItemLogGroup = new LogGroup(this, 'DeleteItemDDBLogGroup', {
+      logGroupName: `/aws/lambda/DeleteItemDDB`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const deleteItemDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'DeleteItemDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/DeleteItemDDB/delete_item.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15),
       bundling: bundlingOptions,
-      functionName: 'DeleteItemDDB'
+      functionName: 'DeleteItemDDB',
+      logGroup: deleteItemLogGroup
     })
-
+    
+    const readDDBLogGroup =  new LogGroup(this, 'ReadDDBLogGroup', {
+      logGroupName: `/aws/lambda/ReadDDB`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const ReadDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'ReadDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ReadDDB/read_from_ddb.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15),
       bundling: bundlingOptions,
-      functionName: 'ReadDDB'
+      functionName: 'ReadDDB',
+      logGroup: readDDBLogGroup
     })
 
+    const scanSendNotifLogGroup = new LogGroup(this, 'ScanSendNotifLogGroup', {
+      logGroupName: `/aws/lambda/ScanSendNotif`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const scanSendNotifFn = new aws_lambda_nodejs.NodejsFunction(this, 'ScanSendNotif', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/ScanSendNotif/scan_send_notif.mjs'),
@@ -89,9 +119,15 @@ export class BackendStack extends cdk.Stack {
         nodeModules: ['dayjs'],
       },
       depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/ScanSendNotif/package-lock.json'),
-      functionName: 'ScanSendNotif'
+      functionName: 'ScanSendNotif',
+      logGroup: scanSendNotifLogGroup
     })
 
+    const writeDDBLogGroup = new LogGroup(this, 'WriteDDBLogGroup', {
+      logGroupName: `/aws/lambda/WriteDDB`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: RetentionDays.ONE_WEEK
+    });
     const writeDDBFn = new aws_lambda_nodejs.NodejsFunction(this, 'WriteDDB', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(__dirname, LAMBDA_PATH + '/WriteDDB/write_to_ddb.mjs'),
@@ -102,7 +138,8 @@ export class BackendStack extends cdk.Stack {
         nodeModules: ['uuid', 'dayjs'],
       },
       depsLockFilePath: path.join(__dirname, LAMBDA_PATH + '/WriteDDB/package-lock.json'),
-      functionName: 'WriteDDB'
+      functionName: 'WriteDDB',
+      logGroup: writeDDBLogGroup
     })
 
     // Grant Lambdas permissions to DynamoDB
