@@ -156,7 +156,11 @@ export class BackendStack extends cdk.Stack {
     })
     const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn, {proxy: true})
     const capResource = CapturePhotoApi.root.addResource("capturePhoto").addResource("item")  // e.g. /products/item
-    capResource.addMethod("OPTIONS")  // for CORS preflight
+    capResource.addCorsPreflight({
+      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: ['POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token']
+    })
     capResource.addMethod("POST", captureIntegration)
 
     const CheckEmailExistenceApi = new aws_apigateway.RestApi(this, 'CheckEmailExistenceApi', {
@@ -164,7 +168,11 @@ export class BackendStack extends cdk.Stack {
     })
     const checkEmailIntegration = new aws_apigateway.LambdaIntegration(CheckEmailExistenceFn, {proxy: true})
     const checkEmailResource = CheckEmailExistenceApi.root.addResource("checkEmailExistence").addResource("email")
-    checkEmailResource.addMethod("OPTIONS")  // for CORS preflight
+    checkEmailResource.addCorsPreflight({
+      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: ['GET', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token']
+    })
     checkEmailResource.addMethod("GET", checkEmailIntegration)
 
     const DeleteItemApi = new aws_apigateway.RestApi(this, 'DeleteItemApi', {
@@ -172,7 +180,11 @@ export class BackendStack extends cdk.Stack {
     })
     const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, {proxy: true})
     const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem").addResource("item").addResource("{email}")
-    deleteItemResource.addMethod("OPTIONS")  // for CORS preflight
+    deleteItemResource.addCorsPreflight({
+      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: ['DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token']
+    })
     deleteItemResource.addMethod("DELETE", deleteItemIntegration, {
       requestParameters: {
         "method.request.path.email": true
@@ -183,8 +195,12 @@ export class BackendStack extends cdk.Stack {
       restApiName: 'Read DDB API'
     })
     const getItemsIntegration = new aws_apigateway.LambdaIntegration(ReadDDBFn, {proxy: true})
-    const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB").addResource("item")
-    getItemsResource.addMethod("OPTIONS")  // for CORS preflight
+    const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB").addResource("items")
+    getItemsResource.addCorsPreflight({
+      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: ['GET', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token']
+    })
     getItemsResource.addMethod("GET", getItemsIntegration)
 
     const PutItemApi = new aws_apigateway.RestApi(this, 'PutItemApi', {
@@ -192,7 +208,11 @@ export class BackendStack extends cdk.Stack {
     })
     const putItemIntegration = new aws_apigateway.LambdaIntegration(writeDDBFn, {proxy: true})
     const putItemResource = PutItemApi.root.addResource("WriteToDDB").addResource("putItem")
-    putItemResource.addMethod("OPTIONS")  // for CORS preflight
+    putItemResource.addCorsPreflight({
+      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowMethods: ['POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token']
+    })
     putItemResource.addMethod("POST", putItemIntegration)
 
     // EventBridge

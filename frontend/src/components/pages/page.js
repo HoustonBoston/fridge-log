@@ -14,6 +14,8 @@ import { LogoutOutlined } from '@mui/icons-material';
 
 import './List.css'
 
+import urls from '../../urls';
+
 
 
 export default function LaptopPage ({ setIsAuthenticated })
@@ -30,7 +32,7 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     const callFetchItemsApi = async () =>
     {
-        const apiUrl = `https://1li9sdgxv3.execute-api.us-east-1.amazonaws.com/prod/ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
+        const apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
         console.log('trying to call fetch items API')
 
         try {
@@ -68,7 +70,7 @@ export default function LaptopPage ({ setIsAuthenticated })
     const callPutItemApi = async (item) =>
     {
         const { item_id, item_name, expiry_date, timestamp, user_email } = item
-        const apiUrl = `https://ymyr2o2ex8.execute-api.us-east-1.amazonaws.com/prod/WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
+        const apiUrl = `${urls.writeToDDBUrl}WriteToDDB/putItem?email=${user_email}&item_id=${item_id}&item_name=${item_name}&expiry_date_epoch_dayjs=${expiry_date}&timestamp=${timestamp}`
         console.log('trying to call put item API')
 
         try {
@@ -132,13 +134,13 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     const handleDeleteItem = async (id, timestamp, email) =>
     {
-        const apiUrl = `https://zhiet2z5zd.execute-api.us-east-1.amazonaws.com/prod/DeleteItem/item/${email}?timestamp=${timestamp}`
+        const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
 
         try {
             const res = await fetch(apiUrl, {
-                method: 'POST'
+                method: 'DELETE'
             })
 
             if (res.ok) {
@@ -152,8 +154,7 @@ export default function LaptopPage ({ setIsAuthenticated })
 
     const callUploadPhotoApi = async (base64Image) =>
     {
-        const apiUrl = `https://7lyb190wdk.execute-api.us-east-1.amazonaws.com/prod/capturePhoto/item`
-        const testApiUrl = `http://172.23.0.162:8080/capturePhoto/item`
+        const apiUrl = `${urls.capturePhotoApiUrl}capturePhoto/item`
 
         try {
             const res = await fetch(apiUrl,
