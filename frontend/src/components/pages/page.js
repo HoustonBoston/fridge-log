@@ -173,7 +173,6 @@ export default function LaptopPage ({ setIsAuthenticated })
     }
 
     const handleDeleteItem = async (id, timestamp, email, index) =>
-    const handleDeleteItem = async (id, timestamp, email, index) =>
     {
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
@@ -367,7 +366,6 @@ export default function LaptopPage ({ setIsAuthenticated })
             lastAddedIndex.current = null
         }
     }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
-    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
     return (
         <>
@@ -401,7 +399,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
                                     <ItemInfoField
                                         fridge_item={item}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
                                         isMobile={isMobile}
