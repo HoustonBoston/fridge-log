@@ -13,7 +13,7 @@ import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
 import { gsap } from "gsap"
-import {Flip} from "gsap/Flip"
+import { Flip } from 'gsap/Flip';
 import {useGSAP} from "@gsap/react"
 
 import urls from '../../urls';
