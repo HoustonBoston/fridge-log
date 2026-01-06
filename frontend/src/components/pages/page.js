@@ -279,23 +279,6 @@ export default function LaptopPage ({ setIsAuthenticated })
                     setIsProcessingPhoto(false)
                     // Reset status after 500ms
                     setTimeout(() => setFabStatus('idle'), 500)
-                //call API - show loading spinner while processing
-                setIsProcessingPhoto(true)
-                try {
-                    resJson = await callUploadPhotoApi(reader.result)
-                    if (resJson) {
-                        setRelevantTexts(resJson.answer)
-                        setFabStatus('success')
-                    } else {
-                        setFabStatus('error')
-                    }
-                } catch (error) {
-                    console.error('Error processing photo:', error)
-                    setFabStatus('error')
-                } finally {
-                    setIsProcessingPhoto(false)
-                    // Reset status after 500ms
-                    setTimeout(() => setFabStatus('idle'), 500)
                 }
             }
         }
@@ -384,52 +367,51 @@ export default function LaptopPage ({ setIsAuthenticated })
     }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
     return (
-            <>
-                <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-                    <Box sx={{
-                        display: 'flex',            // Use flexbox for layout
-                        justifyContent: 'center',   // Center the entire layout horizontally
-                        alignItems: 'center',       // Align items vertically
-                    }}>
-                        <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
-                            <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                <Typography>Welcome, {decoded.name}!</Typography>
-                                <Button onClick={handleClickLogout}>
-                                    <LogoutOutlined />
-                                </Button>
-                            </Box>
+        <>
+            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
+                <Box sx={{
+                    display: 'flex',            // Use flexbox for layout
+                    justifyContent: 'center',   // Center the entire layout horizontally
+                    alignItems: 'center',       // Align items vertically
+                }}>
+                    <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
+                        <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Typography>Welcome, {decoded.name}!</Typography>
+                            <Button onClick={handleClickLogout}>
+                                <LogoutOutlined />
+                            </Button>
                         </Box>
                     </Box>
-                    <Box ref={listRef} sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%',
-                        justifyContent: 'center',
-                        gap: '1.5em'
-                    }}>
+                </Box>
+                <Box ref={listRef} sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%',
+                    justifyContent: 'center',
+                    gap: '1.5em'
+                }}>
+                    {
+                        fridgeItems.map((item, index) =>
                         {
-                            fridgeItems.map((item, index) =>
-                            {
-                                return (
-                                    <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
-                                        <ItemInfoField
-                                            fridge_item={item}
-                                            handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
-                                            handleUpdateItem={handleUpdateItem}
-                                            isMobile={isMobile}
-                                        />
-                                    </div>
-                                )
-                            }
+                            return (
+                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
+                                    <ItemInfoField
+                                        fridge_item={item}
+                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
+                                        handleUpdateItem={handleUpdateItem}
+                                        isMobile={isMobile}
+                                    />
+                                </div>
                             )
                         }
-                    </Box >
-                </Box>
-                    
-                {/* Floating Action Button in bottom right */}
-                <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
-            </>
-        )   
-    }
+                        )
+                    }
+                </Box >
+            </Box>
+                
+            {/* Floating Action Button in bottom right */}
+            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
+        </>
+    )   
 }
