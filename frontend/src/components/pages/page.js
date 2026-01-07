@@ -27,7 +27,11 @@ export default function LaptopPage ({ setIsAuthenticated })
     const [relevantTexts, setRelevantTexts] = useState(null)
     const [fridgeItems, setFridgeItems] = useState([])
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
-    const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing    
+    const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
+    const [pageSize] = useState(10)  // Items per page
+    const [lastEvaluatedKey, setLastEvaluatedKey] = useState(null)  // For pagination
+    const [hasMorePages, setHasMorePages] = useState(false)  // Whether more pages exist
+    const [isLoadingMore, setIsLoadingMore] = useState(false)  // Loading state for pagination    
     const listRef = useRef(null)
     // Use ref to keep track of last added item's index
     let lastAddedIndex = useRef(null)
@@ -54,9 +58,12 @@ export default function LaptopPage ({ setIsAuthenticated })
     const userEmail = decoded.email
 
     // runs on page load or refresh
-    const callFetchItemsApi = async () =>
+    const callFetchItemsApi = async (lastKey = null, append = false) =>
     {
-        const apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
+        let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}&pageSize=${pageSize}`
+        if (lastKey) {
+            apiUrl += `&lastKey=${encodeURIComponent(JSON.stringify(lastKey))}`
+        }
         console.log('trying to call fetch items API')
 
         try {
@@ -72,8 +79,19 @@ export default function LaptopPage ({ setIsAuthenticated })
                 console.log('res body:', res.body)
                 console.log('data', data)
                 const sortedData = data.Items.sort((a, b) => a.expiry_date - b.expiry_date)
-                setFridgeItems(sortedData)
+                
+                if (append) {
+                    setFridgeItems(prevItems => [...prevItems, ...sortedData])
+                } else {
+                    setFridgeItems(sortedData)
+                }
+                
+                // Update pagination state
+                setLastEvaluatedKey(data.LastEvaluatedKey || null)
+                setHasMorePages(!!data.LastEvaluatedKey)
+                
                 console.log('items', data.Items)
+                console.log('LastEvaluatedKey', data.LastEvaluatedKey)
             }
             else console.error('callFetchItemsApi call failed in page.js')
         } catch (error) {
@@ -90,6 +108,14 @@ export default function LaptopPage ({ setIsAuthenticated })
         }
         fetchData()
     }, [])
+
+    const loadMoreItems = async () => {
+        if (!hasMorePages || isLoadingMore) return
+        
+        setIsLoadingMore(true)
+        await callFetchItemsApi(lastEvaluatedKey, true)
+        setIsLoadingMore(false)
+    }
 
     const callPutItemApi = async (item) =>
     {
@@ -408,6 +434,29 @@ export default function LaptopPage ({ setIsAuthenticated })
                         )
                     }
                 </Box >
+                
+                {/* Load More Button */}
+                {hasMorePages && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
+                        <Button 
+                            variant="outlined" 
+                            onClick={loadMoreItems}
+                            disabled={isLoadingMore}
+                            sx={{ minWidth: '150px' }}
+                        >
+                            {isLoadingMore ? 'Loading...' : 'Load More'}
+                        </Button>
+                    </Box>
+                )}
+                
+                {/* Show message when all items are loaded */}
+                {!hasMorePages && fridgeItems.length > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            All items loaded ({fridgeItems.length} total)
+                        </Typography>
+                    </Box>
+                )}
             </Box>
                 
             {/* Floating Action Button in bottom right */}
