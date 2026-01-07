@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../fields/ItemInfoField";
 import AddItemButton from "../buttons/AddItemButton";
@@ -12,24 +12,48 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { LogoutOutlined } from '@mui/icons-material';
 
-import './List.css'
+import { gsap } from "gsap"
+import { Flip } from 'gsap/Flip';
+import {useGSAP} from "@gsap/react"
 
 import urls from '../../urls';
 
+// Register Flip plugin
+gsap.registerPlugin(Flip)
 
 
 export default function LaptopPage ({ setIsAuthenticated })
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
-    const [detectedTexts, setDetectedTexts] = useState([])
     const [fridgeItems, setFridgeItems] = useState([])
-    const innerWidth = window.innerWidth
-    const isMobile = innerWidth < 900
+    const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
+    const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing    
+    const listRef = useRef(null)
+    // Use ref to keep track of last added item's index
+    let lastAddedIndex = useRef(null)
+    // Store Flip state before DOM changes
+    let flipStateRef = useRef(null)
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 500);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup function to remove the event listener
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []); // Empty dependency array ensures it runs once on mount
+    
     const navigate = useNavigate()
 
     const decoded = jwtDecode(localStorage.getItem('user_token'))
     const userEmail = decoded.email
 
+    // runs on page load or refresh
     const callFetchItemsApi = async () =>
     {
         const apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}` //api gw url, can be accessed via host machine's IP with configured firewall
@@ -80,10 +104,15 @@ export default function LaptopPage ({ setIsAuthenticated })
 
             if (res.ok) {
                 console.log('OK response from callPutItemApi', res)
+                return true  // Return success
             }
-            else console.error('callPutItemApi error', res)
+            else {
+                console.error('callPutItemApi error', res)
+                return false  // Return failure
+            }
         } catch (error) {
             console.log('catching callPutItemApi error:', error)
+            return false  // Return failure on exception
         }
     }
 
@@ -101,12 +130,22 @@ export default function LaptopPage ({ setIsAuthenticated })
             timestamp: dayjs().unix()
         }
 
+        // Capture current positions before DOM updates
+        if (listRef.current) {
+            flipStateRef.current = Flip.getState('.list-item',)
+        }
+
         setFridgeItems([item, ...fridgeItems])
+        lastAddedIndex.current = 0;
 
         console.log('adding new item', item)
 
-        await callPutItemApi(item)
-
+        // Call API and update FAB status based on result
+        const success = await callPutItemApi(item)
+        setFabStatus(success ? 'success' : 'error')
+        
+        // Reset FAB status back to idle after 500ms
+        setTimeout(() => setFabStatus('idle'), 500)
 
         console.log('fridge items after adding item', fridgeItems)
     }
@@ -132,11 +171,45 @@ export default function LaptopPage ({ setIsAuthenticated })
         console.log('fridge items after updating item', fridgeItems)
     }
 
-    const handleDeleteItem = async (id, timestamp, email) =>
+    const handleDeleteItem = async (id, timestamp, email, index) =>
     {
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
-        setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
+        
+        const elementToRemove = listRef.current?.children[index]
+        
+        if (elementToRemove) {
+            // Capture positions of all items before animation
+            const flipState = Flip.getState('.list-item')
+            
+            // Animate the element fading out
+            gsap.to(elementToRemove, {
+                opacity: 0,
+                x: -50,
+                duration: 0.3,
+                ease: 'power2.out',
+                onComplete: () => {
+                    // After fade out, remove from state and animate remaining items
+                    setFridgeItems((prevItems) => {
+                        // Schedule Flip animation for next render
+                        requestAnimationFrame(() => {
+                            if (listRef.current) {
+                                Flip.from(flipState, {
+                                    duration: 0.3,
+                                    ease: 'power2.out',
+                                    targets: '.list-item',
+                                })
+                            }
+                        })
+                        const newItems = prevItems.filter((item) => item.item_id !== id)
+                        return newItems
+                    })
+                }
+            })
+        } else {
+            // Fallback: just remove without animation
+            setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
+        }
 
         try {
             const res = await fetch(apiUrl, {
@@ -189,11 +262,23 @@ export default function LaptopPage ({ setIsAuthenticated })
             let resJson
             reader.onload = async () =>
             {
-                //call API
-                resJson = await callUploadPhotoApi(reader.result)
-                if (resJson) {
-                    setDetectedTexts(resJson.answer) // going to be a single word
-                    setRelevantTexts(resJson.answer)
+                //call API - show loading spinner while processing
+                setIsProcessingPhoto(true)
+                try {
+                    resJson = await callUploadPhotoApi(reader.result)
+                    if (resJson) {
+                        setRelevantTexts(resJson.answer)
+                        setFabStatus('success')
+                    } else {
+                        setFabStatus('error')
+                    }
+                } catch (error) {
+                    console.error('Error processing photo:', error)
+                    setFabStatus('error')
+                } finally {
+                    setIsProcessingPhoto(false)
+                    // Reset status after 500ms
+                    setTimeout(() => setFabStatus('idle'), 500)
                 }
             }
         }
@@ -228,7 +313,7 @@ export default function LaptopPage ({ setIsAuthenticated })
                 expiry_date: daysjsDate.unix(),
                 timestamp: currentDate.unix()
             }
-            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems]))
+            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems])).then(lastAddedIndex.current = 0)
         }
     }
 
@@ -239,9 +324,51 @@ export default function LaptopPage ({ setIsAuthenticated })
         navigate('/fridge-log')
     }
 
+    // useGSAP hook handles animations and cleanup
+    useGSAP(() => {
+        // If a new item was just added, animate its entry and move other items
+        if (lastAddedIndex.current !== null && listRef.current) {
+            const newItemElement = listRef.current.children[lastAddedIndex.current]
+            
+            // Animate existing items moving down using Flip
+            if (flipStateRef.current && newItemElement) {
+                // Hide the new item initially
+                gsap.set(newItemElement, { opacity: 0, y: -30 })
+                
+                // 1. First: Slide down existing items to make space
+                Flip.from(flipStateRef.current, {
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    targets: '.list-item:not(:first-child)',  // Exclude new item from Flip
+                    onComplete: () => {
+                        // 2. Then: Animate the new item entry
+                        gsap.to(newItemElement, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.3,
+                            ease: 'power2.out'
+                        })
+                    }
+                })
+                flipStateRef.current = null
+            } else if (newItemElement) {
+                // Fallback: just animate the new item
+                gsap.fromTo(
+                    newItemElement,
+                    { opacity: 0, y: -30 },
+                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+                )
+            }
+
+
+            // Reset the ref so we don't re-animate on other state changes
+            lastAddedIndex.current = null
+        }
+    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
+
     return (
         <>
-            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column' }}>
+            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
                 <Box sx={{
                     display: 'flex',            // Use flexbox for layout
                     justifyContent: 'center',   // Center the entire layout horizontally
@@ -254,15 +381,12 @@ export default function LaptopPage ({ setIsAuthenticated })
                                 <LogoutOutlined />
                             </Button>
                         </Box>
-                        <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} />
                     </Box>
                 </Box>
-                <Box sx={{
+                <Box ref={listRef} sx={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    //padding: isMobile ? '16px' : '0',
-                    //marginTop: isMobile ? '16px' : 0,
                     width: '100%',
                     justifyContent: 'center',
                     gap: '1.5em'
@@ -271,11 +395,10 @@ export default function LaptopPage ({ setIsAuthenticated })
                         fridgeItems.map((item, index) =>
                         {
                             return (
-                                <div className='list-item'>
+                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
                                     <ItemInfoField
-                                        key={item.item_id + index}
                                         fridge_item={item}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email)}
+                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
                                         isMobile={isMobile}
                                     />
@@ -286,6 +409,9 @@ export default function LaptopPage ({ setIsAuthenticated })
                     }
                 </Box >
             </Box>
+                
+            {/* Floating Action Button in bottom right */}
+            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
         </>
-    )
+    )   
 }
