@@ -21,6 +21,7 @@ import {useGSAP} from "@gsap/react"
 import urls from '../../urls';
 
 import DecodedToken from '../../interfaces/DecodedToken';
+import NavBar from '../../components/navbar/NavBar';
 
 // Register Flip plugin
 gsap.registerPlugin(Flip)
@@ -408,20 +409,13 @@ export default function LaptopPage ()
 
     return (
         <>
+        <NavBar />
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
                 <Box sx={{
                     display: 'flex',            // Use flexbox for layout
                     justifyContent: 'center',   // Center the entire layout horizontally
                     alignItems: 'center',       // Align items vertically
                 }}>
-                    <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
-                        <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Typography>Welcome, {decoded.name}!</Typography>
-                            <Button onClick={handleClickLogout}>
-                                <LogoutOutlined />
-                            </Button>
-                        </Box>
-                    </Box>
                 </Box>
                 <Box ref={listRef} sx={{
                     display: 'flex',
