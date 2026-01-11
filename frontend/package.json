@@ -18,19 +18,17 @@
     "dayjs": "^1.11.13",
     "gsap": "^3.14.2",
     "jwt-decode": "^4.0.0",
+    "next": "^16.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.0.1",
-    "react-scripts": "^5.0.1",
     "uuidv4": "^6.2.13",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve@latest ./build",
+    "test": "next test",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
@@ -52,6 +50,7 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.2.0"
+    "gh-pages": "^6.2.0",
+    "typescript": "5.9.3"
   }
 }

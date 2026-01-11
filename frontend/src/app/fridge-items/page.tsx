@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+'use client'
+
+import { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from "uuid"
-import ItemInfoField from "../fields/ItemInfoField";
-import AddItemButton from "../buttons/AddItemButton";
+import ItemInfoField from "../../components/fields/ItemInfoField";
+import AddItemButton from "../../components/buttons/AddItemButton";
 import { Box, Button } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import Typography from '@mui/material/Typography';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc'
@@ -18,11 +20,13 @@ import {useGSAP} from "@gsap/react"
 
 import urls from '../../urls';
 
+import DecodedToken from '../../interfaces/DecodedToken';
+
 // Register Flip plugin
 gsap.registerPlugin(Flip)
 
 
-export default function LaptopPage ({ setIsAuthenticated })
+export default function LaptopPage ()
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
     const [fridgeItems, setFridgeItems] = useState([])
@@ -52,9 +56,17 @@ export default function LaptopPage ({ setIsAuthenticated })
         };
     }, []); // Empty dependency array ensures it runs once on mount
     
-    const navigate = useNavigate()
+    const router = useRouter()
 
-    const decoded = jwtDecode(localStorage.getItem('user_token'))
+    // Protect the page - redirect to login if not authenticated
+    useEffect(() => {
+        const userToken = localStorage.getItem('user_token')
+        if (!userToken) {
+            router.push('/')
+        }
+    }, [router])
+
+    const decoded = jwtDecode<DecodedToken>(localStorage.getItem('user_token'))
     const userEmail = decoded.email
 
     // runs on page load or refresh
@@ -339,15 +351,17 @@ export default function LaptopPage ({ setIsAuthenticated })
                 expiry_date: daysjsDate.unix(),
                 timestamp: currentDate.unix()
             }
-            await callPutItemApi(item).then(setFridgeItems([item, ...fridgeItems])).then(lastAddedIndex.current = 0)
+            await callPutItemApi(item).then(() => {
+                setFridgeItems([item, ...fridgeItems])
+                lastAddedIndex.current = 0
+            })
         }
     }
 
     const handleClickLogout = () =>
     {
         localStorage.removeItem('user_token')
-        setIsAuthenticated(false)
-        navigate('/fridge-log')
+        router.push('/')
     }
 
     // useGSAP hook handles animations and cleanup
@@ -460,7 +474,7 @@ export default function LaptopPage ({ setIsAuthenticated })
             </Box>
                 
             {/* Floating Action Button in bottom right */}
-            <AddItemButton handleAddItem={handleAddItem} isMobile={isMobile} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
+            <AddItemButton handleAddItem={handleAddItem} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
         </>
     )   
 }

@@ -60,8 +60,8 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
         <TextField defaultValue={item_name} label="Item name" variant='outlined' onBlur={handleItemNameChange} />
         {
           isMobile ?
-            <IconButton onClick={handleOpenDialog} color='blue'>
-              <DeleteIcon color="blue" />
+            <IconButton onClick={handleOpenDialog} color='primary'>
+              <DeleteIcon color="primary" />
             </IconButton>
             : <></>
         }
@@ -79,8 +79,8 @@ export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpd
       <Box>
         {
           !isMobile ?
-            <IconButton onClick={handleOpenDialog} color='blue'>
-              <DeleteIcon color='blue' />
+            <IconButton onClick={handleOpenDialog} color='primary'>
+              <DeleteIcon color='primary' />
             </IconButton>
             : <></>
         }
