@@ -21,7 +21,6 @@ import {useGSAP} from "@gsap/react"
 import urls from '../../urls';
 
 import DecodedToken from '../../interfaces/DecodedToken';
-import NavBar from '../../components/navbar/NavBar';
 
 // Register Flip plugin
 gsap.registerPlugin(Flip)
@@ -409,7 +408,6 @@ export default function LaptopPage ()
 
     return (
         <>
-        <NavBar />
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
                 <Box sx={{
                     display: 'flex',            // Use flexbox for layout

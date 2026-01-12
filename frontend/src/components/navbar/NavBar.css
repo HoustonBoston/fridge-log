@@ -1,11 +1,11 @@
-.navbar{
+.navbar {
     background-color: #22aece;
     overflow: hidden;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    display: flex; flex-direction: row-reverse; align-items: center;
     position: fixed;
-    top: 0;
     width: 100%;
-    height: 2.5em;
+    top: 0; left: 0;
+    height: 3em;
+    padding: 0 1rem;
+    box-sizing: border-box;
 }

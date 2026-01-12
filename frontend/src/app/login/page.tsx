@@ -7,10 +7,10 @@ import { useEffect, useState } from 'react'
 import { jwtDecode } from "jwt-decode"
 import Image from 'next/image'
 
-import urls from "../urls"
-import image from '../fridge.png'
+import urls from "../../urls"
+import image from '../../fridge.png'
 
-import DecodedToken from "../interfaces/DecodedToken"
+import DecodedToken from "../../interfaces/DecodedToken"
 
 export default function LoginPage(): JSX.Element | null {
     const router = useRouter()
@@ -76,7 +76,7 @@ export default function LoginPage(): JSX.Element | null {
             "flexDirection": "column",
             "height": "50vh"
         }}>
-            <Image src={image} alt="Logo" height={100} />
+            <Image src={image.src} alt="Logo" height={100} />
             <br></br>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
