@@ -1,5 +1,5 @@
 .navbar {
-    background-color: #22aece;
+    background-color: rgba(34, 174, 206, 0.8);
     overflow: hidden;
     display: flex; flex-direction: row-reverse; align-items: center;
     position: fixed;

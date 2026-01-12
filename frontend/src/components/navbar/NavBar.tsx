@@ -1,6 +1,6 @@
 import './NavBar.css'
 
-import { SearchOutlined } from '@mui/icons-material'
+import { LogoutOutlined, SearchOutlined } from '@mui/icons-material'
 import { Box, IconButton, TextField } from '@mui/material'
 import { useState, useRef, useEffect } from 'react'
 
@@ -17,7 +17,7 @@ export default function NavBar() {
             // Small delay to ensure the animation starts before focusing
             setTimeout(() => {
                 inputRef.current?.focus()
-            }, 100)
+            }, 320)
         }
     }, [searchOpen])
 
@@ -30,7 +30,6 @@ export default function NavBar() {
                         opacity: searchOpen ? 1 : 0,
                         transition: 'width 0.3s ease, opacity 0.3s ease',
                         overflow: 'hidden',
-                        transformOrigin: 'right center',
                     }}
                 >
                     <TextField
@@ -42,12 +41,19 @@ export default function NavBar() {
                             width: '100%',
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            },
+                            "input::placeholder": {
+                                color: 'black',
+                                opacity: 0.9
                             }
                         }}
                     />
                 </Box>
                 <IconButton onClick={handleSearchClick} sx={{ color: 'white' }}>
                     <SearchOutlined />
+                </IconButton>
+                <IconButton sx={{ color: 'white' }}>
+                    <LogoutOutlined />
                 </IconButton>
             </Box>
         </header>
