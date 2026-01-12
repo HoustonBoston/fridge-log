@@ -76,7 +76,7 @@ export default function LoginPage(): JSX.Element | null {
             "flexDirection": "column",
             "height": "50vh"
         }}>
-            <Image src={image.src} alt="Logo" height={100} />
+            <Image src={image.src} alt="Logo" height={100} width={100}/>
             <br></br>
             <Typography>Welcome to Fridge Log!</Typography>
             <br></br>
