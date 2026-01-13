@@ -3,6 +3,8 @@
 import React from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import NavBar from "../components/navbar/NavBar"
+import FridgeItemsProvider from "../contexts/ItemsContext"
+import IsMobileProvider from "../contexts/IsMobileContext"
 
 const clientId = "726133421526-1e3g6etorn5s4re8h6hncg7mplhsqepp.apps.googleusercontent.com"
 
@@ -18,10 +20,14 @@ export default function RootLayout({
         <title>Fridge Log Application</title>
       </head>
       <body>
-        <GoogleOAuthProvider clientId={clientId}>
-          <NavBar />
-          <div id="root">{children}</div>
-        </GoogleOAuthProvider>
+        <IsMobileProvider>
+          <FridgeItemsProvider>
+            <GoogleOAuthProvider clientId={clientId}>
+              <NavBar />
+              <div id="root">{children}</div>
+            </GoogleOAuthProvider>
+          </FridgeItemsProvider>
+        </IsMobileProvider>
       </body>
     </html>
   )

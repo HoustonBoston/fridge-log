@@ -8,14 +8,16 @@ import { DatePicker, LocalizationProvider, } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import DeleteItemDialog from '../dialog/DeleteItemDialog';
+import { useIsMobile } from '../../contexts/IsMobileContext';
 
-export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpdateItem, isMobile }) {
+export default function ItemInfoField({ fridge_item, handleDeleteItem, handleUpdateItem }) {
   dayjs.extend(utc)
   dayjs.extend(timezone)
 
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false)
   const { item_name, expiry_date } = fridge_item //in unix when data is fetched
   const [expiryDate, setExpiryDate] = React.useState(dayjs.unix(expiry_date)) // convert back to dayjs object
+  const isMobile = useIsMobile();
 
   const handleExpiryDateChange = (value) => {
     console.log('calling handleExpiryDateChange')

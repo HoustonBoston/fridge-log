@@ -21,6 +21,8 @@ import {useGSAP} from "@gsap/react"
 import urls from '../../urls';
 
 import DecodedToken from '../../interfaces/DecodedToken';
+import { useItems } from '../../contexts/ItemsContext';
+import { useIsMobile } from '../../contexts/IsMobileContext';
 
 // Register Flip plugin
 gsap.registerPlugin(Flip)
@@ -29,7 +31,7 @@ gsap.registerPlugin(Flip)
 export default function LaptopPage ()
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
-    const [fridgeItems, setFridgeItems] = useState([])
+    const [fridgeItems, setFridgeItems] = useItems()
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
     const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
     const [pageSize] = useState(10)  // Items per page
@@ -41,20 +43,7 @@ export default function LaptopPage ()
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 500);
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Cleanup function to remove the event listener
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []); // Empty dependency array ensures it runs once on mount
+    const isMobile = useIsMobile();
     
     const router = useRouter()
 
@@ -432,7 +421,6 @@ export default function LaptopPage ()
                                         fridge_item={item}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
-                                        isMobile={isMobile}
                                     />
                                 </div>
                             )
