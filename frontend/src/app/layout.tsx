@@ -2,7 +2,7 @@
 
 import React from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
-import type { Metadata } from 'next'
+import NavBar from "../components/navbar/NavBar"
 
 const clientId = "726133421526-1e3g6etorn5s4re8h6hncg7mplhsqepp.apps.googleusercontent.com"
 
@@ -19,6 +19,7 @@ export default function RootLayout({
       </head>
       <body>
         <GoogleOAuthProvider clientId={clientId}>
+          <NavBar />
           <div id="root">{children}</div>
         </GoogleOAuthProvider>
       </body>

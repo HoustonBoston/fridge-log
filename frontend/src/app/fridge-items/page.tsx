@@ -414,14 +414,6 @@ export default function LaptopPage ()
                     justifyContent: 'center',   // Center the entire layout horizontally
                     alignItems: 'center',       // Align items vertically
                 }}>
-                    <Box sx={{ paddingBottom: isMobile ? '0.5em' : '1em' }}>
-                        <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Typography>Welcome, {decoded.name}!</Typography>
-                            <Button onClick={handleClickLogout}>
-                                <LogoutOutlined />
-                            </Button>
-                        </Box>
-                    </Box>
                 </Box>
                 <Box ref={listRef} sx={{
                     display: 'flex',
