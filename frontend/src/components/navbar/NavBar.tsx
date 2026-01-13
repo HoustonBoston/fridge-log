@@ -5,12 +5,19 @@ import { Box, IconButton, TextField } from '@mui/material'
 import { useState, useRef, useEffect } from 'react'
 
 import { useSearch } from '../../contexts/SearchContext'
+import router from 'next/router'
 
 
 export default function NavBar() {
     const [searchOpen, setSearchOpen] = useState<boolean>(false)
     const [searchQuery, setSearchQuery] = useSearch()
     const inputRef = useRef<HTMLInputElement>(null)
+
+    const handleClickLogout = () =>
+    {
+        localStorage.removeItem('user_token')
+        router.push('/login')
+    }
 
     const handleSearchClick = () => {
         setSearchOpen(!searchOpen)
@@ -65,7 +72,7 @@ export default function NavBar() {
                 <IconButton onClick={handleSearchClick} sx={{ color: 'white' }}>
                     <SearchOutlined />
                 </IconButton>
-                <IconButton sx={{ color: 'white' }}>
+                <IconButton onClick={handleClickLogout} sx={{ color: 'white' }}>
                     <LogoutOutlined />
                 </IconButton>
             </Box>
