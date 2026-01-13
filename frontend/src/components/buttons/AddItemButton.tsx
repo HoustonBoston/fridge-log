@@ -79,8 +79,8 @@ export default function AddItemButton({ handleAddItem, handleClickPicture, statu
             ref={fabRef}
             sx={{
                 position: 'fixed',
-                bottom: 24,
-                right: 24,
+                bottom: 10,
+                right: 9,
                 display: 'flex',
                 flexDirection: 'column',  // Stack buttons vertically
                 alignItems: 'center',

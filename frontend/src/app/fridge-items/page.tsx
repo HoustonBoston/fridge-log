@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import { LogoutOutlined } from '@mui/icons-material';
 
 import { gsap } from "gsap"
 import { Flip } from 'gsap/Flip';
@@ -23,6 +22,7 @@ import urls from '../../urls';
 import DecodedToken from '../../interfaces/DecodedToken';
 import { useItems } from '../../contexts/ItemsContext';
 import { useIsMobile } from '../../contexts/IsMobileContext';
+import { useSearch } from '../../contexts/SearchContext';
 
 // Register Flip plugin
 gsap.registerPlugin(Flip)
@@ -32,17 +32,19 @@ export default function LaptopPage ()
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
     const [fridgeItems, setFridgeItems] = useItems()
+    const [searchQuery] = useSearch()
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
     const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
-    const [pageSize] = useState(10)  // Items per page
-    const [lastEvaluatedKey, setLastEvaluatedKey] = useState(null)  // For pagination
-    const [hasMorePages, setHasMorePages] = useState(false)  // Whether more pages exist
-    const [isLoadingMore, setIsLoadingMore] = useState(false)  // Loading state for pagination    
+    const pageSize = useRef(10)  // Items per page
+    const visibleCount = useRef(pageSize.current)
+    const [hasMore, setHasMore] = useState(false)  // Whether more items exist
     const listRef = useRef(null)
-    // Use ref to keep track of last added item's index
+    
+    // Use ref to keep track of last added item's index (GSAP)
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
+    
     const isMobile = useIsMobile();
     
     const router = useRouter()
@@ -51,7 +53,7 @@ export default function LaptopPage ()
     useEffect(() => {
         const userToken = localStorage.getItem('user_token')
         if (!userToken) {
-            router.push('/')
+            router.push('/login')
         }
     }, [router])
 
@@ -61,10 +63,7 @@ export default function LaptopPage ()
     // runs on page load or refresh
     const callFetchItemsApi = async (lastKey = null, append = false) =>
     {
-        let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}&pageSize=${pageSize}`
-        if (lastKey) {
-            apiUrl += `&lastKey=${encodeURIComponent(JSON.stringify(lastKey))}`
-        }
+        let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}`
         console.log('trying to call fetch items API')
 
         try {
@@ -80,19 +79,12 @@ export default function LaptopPage ()
                 console.log('res body:', res.body)
                 console.log('data', data)
                 const sortedData = data.Items.sort((a, b) => a.expiry_date - b.expiry_date)
-                
-                if (append) {
-                    setFridgeItems(prevItems => [...prevItems, ...sortedData])
-                } else {
-                    setFridgeItems(sortedData)
-                }
+                setFridgeItems(sortedData)
                 
                 // Update pagination state
-                setLastEvaluatedKey(data.LastEvaluatedKey || null)
-                setHasMorePages(!!data.LastEvaluatedKey)
+                setHasMore(visibleCount.current < sortedData.length)
                 
                 console.log('items', data.Items)
-                console.log('LastEvaluatedKey', data.LastEvaluatedKey)
             }
             else console.error('callFetchItemsApi call failed in page.js')
         } catch (error) {
@@ -110,12 +102,12 @@ export default function LaptopPage ()
         fetchData()
     }, [])
 
-    const loadMoreItems = async () => {
-        if (!hasMorePages || isLoadingMore) return
+    const loadMoreItems = () => {
+        if (!hasMore) return
         
-        setIsLoadingMore(true)
-        await callFetchItemsApi(lastEvaluatedKey, true)
-        setIsLoadingMore(false)
+        // render more items on the page
+        visibleCount.current += pageSize.current
+        setHasMore(visibleCount.current < fridgeItems.length)
     }
 
     const callPutItemApi = async (item) =>
@@ -350,7 +342,7 @@ export default function LaptopPage ()
     const handleClickLogout = () =>
     {
         localStorage.removeItem('user_token')
-        router.push('/')
+        router.push('/login')
     }
 
     // useGSAP hook handles animations and cleanup
@@ -395,6 +387,13 @@ export default function LaptopPage ()
         }
     }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
 
+    // Filter items based on search query
+    const filteredItems = searchQuery
+        ? fridgeItems.filter(item => 
+            item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : fridgeItems
+
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
@@ -413,7 +412,7 @@ export default function LaptopPage ()
                     gap: '1.5em'
                 }}>
                     {
-                        fridgeItems.map((item, index) =>
+                        filteredItems.slice(0, visibleCount.current).map((item, index) =>
                         {
                             return (
                                 <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
@@ -430,24 +429,33 @@ export default function LaptopPage ()
                 </Box >
                 
                 {/* Load More Button */}
-                {hasMorePages && (
+                {!searchQuery && hasMore && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
                         <Button 
                             variant="outlined" 
                             onClick={loadMoreItems}
-                            disabled={isLoadingMore}
+                            disabled={!hasMore}
                             sx={{ minWidth: '150px' }}
                         >
-                            {isLoadingMore ? 'Loading...' : 'Load More'}
+                            {hasMore && 'Load More'}
                         </Button>
                     </Box>
                 )}
                 
                 {/* Show message when all items are loaded */}
-                {!hasMorePages && fridgeItems.length > 0 && (
+                {!searchQuery && !hasMore && fridgeItems.length > 0 && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
                         <Typography variant="body2" color="text.secondary">
                             All items loaded ({fridgeItems.length} total)
+                        </Typography>
+                    </Box>
+                )}
+                
+                {/* Show search results count */}
+                {searchQuery && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            {filteredItems.length} {filteredItems.length === 1 ? 'result' : 'results'} found
                         </Typography>
                     </Box>
                 )}
