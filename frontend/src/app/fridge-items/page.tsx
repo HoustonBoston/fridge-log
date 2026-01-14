@@ -50,21 +50,25 @@ export default function LaptopPage ()
     const isMobile = useIsMobile();
     
     const router = useRouter()
+    
+    const [userEmail, setUserEmail] = useState<string | null>(null)
 
     // Protect the page - redirect to login if not authenticated
     useEffect(() => {
         const userToken = localStorage.getItem('user_token')
         if (!userToken) {
             router.push('/login')
+        } else {
+            const decoded = jwtDecode<DecodedToken>(userToken)
+            setUserEmail(decoded.email)
         }
     }, [router])
-
-    const decoded = jwtDecode<DecodedToken>(localStorage.getItem('user_token'))
-    const userEmail = decoded.email
 
     // runs on page load or refresh
     const callFetchItemsApi = async () =>
     {
+        if (!userEmail) return
+        
         let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}`
         console.log('trying to call fetch items API')
 
@@ -101,8 +105,10 @@ export default function LaptopPage ()
             console.log('trying to fetch data in useEffect')
             await callFetchItemsApi()
         }
-        fetchData()
-    }, [])
+        if (userEmail) {
+            fetchData()
+        }
+    }, [userEmail])
 
     const loadMoreItems = () => {
         if (!hasMore) return
@@ -139,6 +145,8 @@ export default function LaptopPage ()
 
     const handleAddItem = async () => // send dates as unix!!
     {
+        if (!userEmail) return
+        
         dayjs.extend(utc)
         dayjs.extend(timezone)
         const currentDate = dayjs().tz('America/New_York').hour(12).minute(0).second(0).millisecond(0)
