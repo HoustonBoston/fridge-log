@@ -32,7 +32,7 @@ export default function LaptopPage ()
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
     const [fridgeItems, setFridgeItems] = useItems()
-    const [searchQuery] = useSearch()
+    const [searchQuery, setSearchQuery] = useSearch()
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
     const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
     const pageSize = useRef(10)  // Items per page
@@ -44,6 +44,8 @@ export default function LaptopPage ()
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
+    // Track previous filtered items for search animation
+    const prevFilteredIdsRef = useRef<string[]>([])
     
     const isMobile = useIsMobile();
     
@@ -61,7 +63,7 @@ export default function LaptopPage ()
     const userEmail = decoded.email
 
     // runs on page load or refresh
-    const callFetchItemsApi = async (lastKey = null, append = false) =>
+    const callFetchItemsApi = async () =>
     {
         let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}`
         console.log('trying to call fetch items API')
@@ -149,6 +151,11 @@ export default function LaptopPage ()
             timestamp: dayjs().unix()
         }
 
+        // Clear search so new item is visible
+        if (searchQuery) {
+            setSearchQuery('')
+        }
+
         // Capture current positions before DOM updates
         if (listRef.current) {
             flipStateRef.current = Flip.getState('.list-item',)
@@ -195,34 +202,29 @@ export default function LaptopPage ()
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         
-        const elementToRemove = listRef.current?.children[index]
+        const elementToRemove = listRef.current?.children[index] as HTMLElement
         
         if (elementToRemove) {
-            // Capture positions of all items before animation
-            const flipState = Flip.getState('.list-item')
+            // Get the current height for animation
+            const currentHeight = elementToRemove.offsetHeight
             
-            // Animate the element fading out
+            // Set explicit height so we can animate it
+            gsap.set(elementToRemove, { height: currentHeight, overflow: 'hidden' })
+            
+            // Animate fade out and collapse height together
             gsap.to(elementToRemove, {
                 opacity: 0,
-                x: -50,
+                x: -30,
+                height: 0,
+                marginTop: 0,
+                marginBottom: 0,
+                paddingTop: 0,
+                paddingBottom: 0,
                 duration: 0.3,
                 ease: 'power2.out',
                 onComplete: () => {
-                    // After fade out, remove from state and animate remaining items
-                    setFridgeItems((prevItems) => {
-                        // Schedule Flip animation for next render
-                        requestAnimationFrame(() => {
-                            if (listRef.current) {
-                                Flip.from(flipState, {
-                                    duration: 0.3,
-                                    ease: 'power2.out',
-                                    targets: '.list-item',
-                                })
-                            }
-                        })
-                        const newItems = prevItems.filter((item) => item.item_id !== id)
-                        return newItems
-                    })
+                    // After animation completes, remove from state
+                    setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
                 }
             })
         } else {
@@ -339,12 +341,6 @@ export default function LaptopPage ()
         }
     }
 
-    const handleClickLogout = () =>
-    {
-        localStorage.removeItem('user_token')
-        router.push('/login')
-    }
-
     // useGSAP hook handles animations and cleanup
     useGSAP(() => {
         // If a new item was just added, animate its entry and move other items
@@ -381,7 +377,6 @@ export default function LaptopPage ()
                 )
             }
 
-
             // Reset the ref so we don't re-animate on other state changes
             lastAddedIndex.current = null
         }
@@ -393,6 +388,38 @@ export default function LaptopPage ()
             item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
           )
         : fridgeItems
+
+    // Animate search result changes
+    useEffect(() => {
+        if (!listRef.current) return
+        
+        const currentIds = filteredItems.slice(0, visibleCount.current).map(item => item.item_id)
+        const prevIds = prevFilteredIdsRef.current
+        
+        // Skip animation if this is from add/delete (handled separately)
+        if (lastAddedIndex.current !== null) {
+            prevFilteredIdsRef.current = currentIds
+            return
+        }
+        
+        // Find items that are newly appearing
+        const newlyAppearing = currentIds.filter(id => !prevIds.includes(id))
+        
+        // Animate newly appearing items
+        if (newlyAppearing.length > 0 && prevIds.length > 0) {
+            newlyAppearing.forEach(id => {
+                const element = listRef.current?.querySelector(`[data-flip-id="${id}"]`)
+                if (element) {
+                    gsap.fromTo(element, 
+                        { opacity: 0, scale: 0.95 },
+                        { opacity: 1, scale: 1, duration: 0.25, ease: 'power2.out' }
+                    )
+                }
+            })
+        }
+        
+        prevFilteredIdsRef.current = currentIds
+    }, [filteredItems, searchQuery])
 
     return (
         <>
