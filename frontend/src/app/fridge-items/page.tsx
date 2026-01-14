@@ -425,7 +425,7 @@ export default function LaptopPage ()
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-                
+
                 <Box ref={listRef} sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -487,5 +487,5 @@ export default function LaptopPage ()
             {/* Floating Action Button in bottom right */}
             <AddItemButton handleAddItem={handleAddItem} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
         </>
-    )   
+    )
 }
