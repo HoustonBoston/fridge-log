@@ -58,6 +58,7 @@ export default function NavBar() {
                         variant="outlined"
                         value={searchQuery}
                         onChange={handleSearch}
+                        fullWidth
                         sx={{
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.8)',

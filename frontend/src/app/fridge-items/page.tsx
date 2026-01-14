@@ -222,6 +222,7 @@ export default function LaptopPage ()
                 paddingBottom: 0,
                 duration: 0.3,
                 ease: 'power2.out',
+                delay: 0.35,
                 onComplete: () => {
                     // After animation completes, remove from state
                     setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
@@ -424,12 +425,7 @@ export default function LaptopPage ()
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-                <Box sx={{
-                    display: 'flex',            // Use flexbox for layout
-                    justifyContent: 'center',   // Center the entire layout horizontally
-                    alignItems: 'center',       // Align items vertically
-                }}>
-                </Box>
+                
                 <Box ref={listRef} sx={{
                     display: 'flex',
                     flexDirection: 'column',

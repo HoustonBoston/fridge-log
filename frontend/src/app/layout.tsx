@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <title>Fridge Log Application</title>
+        <title>Fridge Log</title>
       </head>
       <body>
         <IsMobileProvider>
