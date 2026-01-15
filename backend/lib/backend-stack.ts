@@ -17,6 +17,8 @@ const bundlingOptions = {
   forceDockerBundling: false,
 }
 
+process.loadEnvFile(path.join(__dirname, '../.env'));
+
 export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -50,6 +52,9 @@ export class BackendStack extends cdk.Stack {
       entry: path.join(__dirname, LAMBDA_PATH + '/CapturePhoto/capture_photo.mjs'),
       handler: 'handler',
       timeout: cdk.Duration.seconds(15),
+      environment : {
+        MOONDREAM_API_KEY: process.env.MOONDREAM_API_KEY || ''
+      },
       bundling: {
         ...bundlingOptions,
         nodeModules: ['moondream'],

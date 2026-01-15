@@ -27,7 +27,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npx serve@latest ./build",
+    "start": "next start",
     "test": "next test",
     "deploy": "gh-pages -d build"
   },

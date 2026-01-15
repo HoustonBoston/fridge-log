@@ -1,7 +1,8 @@
 import { vl } from "moondream"
+import process from "process"
 
 const model = new vl({
-    apiKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlfaWQiOiI2MmVkYWEyYS00NWRhLTQzMzItYjAzNC02YmI2MzhkNjljMTAiLCJvcmdfaWQiOiI0b0xDdGJhUmhBeml5WVdNWTlBNjBHZmw0VUpybFdpNSIsImlhdCI6MTc2NzAzNzk1MywidmVyIjoxfQ.tqcVtGG9TuYgvROZ8QhgTzr8aLhdSGaZIBMgxsWr3ZY"
+    apiKey: process.env.MOONDREAM_API_KEY
 })
 
 export const handler = async (event) =>

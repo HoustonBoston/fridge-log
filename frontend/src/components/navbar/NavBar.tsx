@@ -4,12 +4,31 @@ import { LogoutOutlined, SearchOutlined } from '@mui/icons-material'
 import { Box, IconButton, TextField } from '@mui/material'
 import { useState, useRef, useEffect } from 'react'
 
+import { useSearch } from '../../contexts/SearchContext'
+import router from 'next/router'
+
+
 export default function NavBar() {
     const [searchOpen, setSearchOpen] = useState<boolean>(false)
+    const [searchQuery, setSearchQuery] = useSearch()
     const inputRef = useRef<HTMLInputElement>(null)
+
+    const handleClickLogout = () =>
+    {
+        localStorage.removeItem('user_token')
+        router.push('/login')
+    }
 
     const handleSearchClick = () => {
         setSearchOpen(!searchOpen)
+        if (searchOpen) {
+            // Clear search when closing
+            setSearchQuery('')
+        }
+    }
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(event.target.value)
     }
 
     useEffect(() => {
@@ -23,12 +42,12 @@ export default function NavBar() {
 
     return (
         <header className="navbar">
-            <Box className="nav-btns" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box className="nav-btns" sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', justifyContent: 'flex-end' }}>
                 <Box
                     sx={{
-                        width: searchOpen ? '50vw' : '0px',
+                        flex: searchOpen ? 1 : 0,
                         opacity: searchOpen ? 1 : 0,
-                        transition: 'width 0.3s ease, opacity 0.3s ease',
+                        transition: 'flex 0.3s ease, opacity 0.3s ease',
                         overflow: 'hidden',
                     }}
                 >
@@ -37,8 +56,10 @@ export default function NavBar() {
                         size="small"
                         placeholder="Search..."
                         variant="outlined"
+                        value={searchQuery}
+                        onChange={handleSearch}
+                        fullWidth
                         sx={{
-                            width: '100%',
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
                             },
@@ -52,7 +73,7 @@ export default function NavBar() {
                 <IconButton onClick={handleSearchClick} sx={{ color: 'white' }}>
                     <SearchOutlined />
                 </IconButton>
-                <IconButton sx={{ color: 'white' }}>
+                <IconButton onClick={handleClickLogout} sx={{ color: 'white' }}>
                     <LogoutOutlined />
                 </IconButton>
             </Box>

@@ -1,6 +1,11 @@
 import { Dialog, DialogActions, Typography, Button, DialogContent, DialogTitle, DialogContentText } from '@mui/material'
 
 export default function DeleteItemDialog({ open, itemName, onDeleteClick, onCancelClick }) {
+    const handleDelete = () => {
+        onCancelClick()  // Close dialog first
+        onDeleteClick()  // Then trigger delete animation
+    }
+
     return (
         <Dialog open={open} onClose={onCancelClick}>
             <DialogTitle>{`Delete ${itemName}?`}</DialogTitle>
@@ -11,7 +16,7 @@ export default function DeleteItemDialog({ open, itemName, onDeleteClick, onCanc
                 <Button onClick={onCancelClick}>
                     <Typography color='blue'>Cancel</Typography>
                 </Button>
-                <Button onClick={onDeleteClick}>
+                <Button onClick={handleDelete}>
                     <Typography color='red'>Delete</Typography>
                 </Button>
             </DialogActions>

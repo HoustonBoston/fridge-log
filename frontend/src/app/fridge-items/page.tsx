@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import { LogoutOutlined } from '@mui/icons-material';
 
 import { gsap } from "gsap"
 import { Flip } from 'gsap/Flip';
@@ -21,6 +20,9 @@ import {useGSAP} from "@gsap/react"
 import urls from '../../urls';
 
 import DecodedToken from '../../interfaces/DecodedToken';
+import { useItems } from '../../contexts/ItemsContext';
+import { useIsMobile } from '../../contexts/IsMobileContext';
+import { useSearch } from '../../contexts/SearchContext';
 
 // Register Flip plugin
 gsap.registerPlugin(Flip)
@@ -29,53 +31,49 @@ gsap.registerPlugin(Flip)
 export default function LaptopPage ()
 {
     const [relevantTexts, setRelevantTexts] = useState(null)
-    const [fridgeItems, setFridgeItems] = useState([])
+    const [fridgeItems, setFridgeItems] = useItems()
+    const [searchQuery, setSearchQuery] = useSearch()
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
     const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
-    const [pageSize] = useState(10)  // Items per page
-    const [lastEvaluatedKey, setLastEvaluatedKey] = useState(null)  // For pagination
-    const [hasMorePages, setHasMorePages] = useState(false)  // Whether more pages exist
-    const [isLoadingMore, setIsLoadingMore] = useState(false)  // Loading state for pagination    
+    const pageSize = useRef(10)  // Items per page
+    const visibleCount = useRef(pageSize.current)
+    const [hasMore, setHasMore] = useState(false)  // Whether more items exist
     const listRef = useRef(null)
-    // Use ref to keep track of last added item's index
+    
+    // Use ref to keep track of last added item's index (GSAP)
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 500);
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Cleanup function to remove the event listener
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []); // Empty dependency array ensures it runs once on mount
+    // Store Flip state for delete animation
+    const deleteFlipStateRef = useRef(null)
+    // Track newly added item ID to apply initial hidden style
+    const newlyAddedItemId = useRef<string | null>(null)
+    // Track previous filtered items for search animation
+    const prevFilteredIdsRef = useRef<string[]>([])
+    
+    const isMobile = useIsMobile();
     
     const router = useRouter()
+    
+    const [userEmail, setUserEmail] = useState<string | null>(null)
 
     // Protect the page - redirect to login if not authenticated
     useEffect(() => {
         const userToken = localStorage.getItem('user_token')
         if (!userToken) {
-            router.push('/')
+            router.push('/login')
+        } else {
+            const decoded = jwtDecode<DecodedToken>(userToken)
+            setUserEmail(decoded.email)
         }
     }, [router])
 
-    const decoded = jwtDecode<DecodedToken>(localStorage.getItem('user_token'))
-    const userEmail = decoded.email
-
     // runs on page load or refresh
-    const callFetchItemsApi = async (lastKey = null, append = false) =>
+    const callFetchItemsApi = async () =>
     {
-        let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}&pageSize=${pageSize}`
-        if (lastKey) {
-            apiUrl += `&lastKey=${encodeURIComponent(JSON.stringify(lastKey))}`
-        }
+        if (!userEmail) return
+        
+        let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}`
         console.log('trying to call fetch items API')
 
         try {
@@ -91,19 +89,12 @@ export default function LaptopPage ()
                 console.log('res body:', res.body)
                 console.log('data', data)
                 const sortedData = data.Items.sort((a, b) => a.expiry_date - b.expiry_date)
-                
-                if (append) {
-                    setFridgeItems(prevItems => [...prevItems, ...sortedData])
-                } else {
-                    setFridgeItems(sortedData)
-                }
+                setFridgeItems(sortedData)
                 
                 // Update pagination state
-                setLastEvaluatedKey(data.LastEvaluatedKey || null)
-                setHasMorePages(!!data.LastEvaluatedKey)
+                setHasMore(visibleCount.current < sortedData.length)
                 
                 console.log('items', data.Items)
-                console.log('LastEvaluatedKey', data.LastEvaluatedKey)
             }
             else console.error('callFetchItemsApi call failed in page.js')
         } catch (error) {
@@ -118,15 +109,17 @@ export default function LaptopPage ()
             console.log('trying to fetch data in useEffect')
             await callFetchItemsApi()
         }
-        fetchData()
-    }, [])
+        if (userEmail) {
+            fetchData()
+        }
+    }, [userEmail])
 
-    const loadMoreItems = async () => {
-        if (!hasMorePages || isLoadingMore) return
+    const loadMoreItems = () => {
+        if (!hasMore) return
         
-        setIsLoadingMore(true)
-        await callFetchItemsApi(lastEvaluatedKey, true)
-        setIsLoadingMore(false)
+        // render more items on the page
+        visibleCount.current += pageSize.current
+        setHasMore(visibleCount.current < fridgeItems.length)
     }
 
     const callPutItemApi = async (item) =>
@@ -156,6 +149,8 @@ export default function LaptopPage ()
 
     const handleAddItem = async () => // send dates as unix!!
     {
+        if (!userEmail) return
+        
         dayjs.extend(utc)
         dayjs.extend(timezone)
         const currentDate = dayjs().tz('America/New_York').hour(12).minute(0).second(0).millisecond(0)
@@ -168,10 +163,18 @@ export default function LaptopPage ()
             timestamp: dayjs().unix()
         }
 
+        // Clear search so new item is visible
+        if (searchQuery) {
+            setSearchQuery('')
+        }
+
         // Capture current positions before DOM updates
         if (listRef.current) {
             flipStateRef.current = Flip.getState('.list-item',)
         }
+
+        // Mark this item as newly added so it renders hidden
+        newlyAddedItemId.current = item.item_id
 
         setFridgeItems([item, ...fridgeItems])
         lastAddedIndex.current = 0;
@@ -214,34 +217,29 @@ export default function LaptopPage ()
         const apiUrl = `${urls.deleteItemApiUrl}DeleteItem/item/${email}?timestamp=${timestamp}`
         console.log('trying to call delete item API for id', id)
         
-        const elementToRemove = listRef.current?.children[index]
+        const elementToRemove = listRef.current?.children[index] as HTMLElement
         
         if (elementToRemove) {
-            // Capture positions of all items before animation
-            const flipState = Flip.getState('.list-item')
+            // Get the current height for animation
+            const currentHeight = elementToRemove.offsetHeight
             
-            // Animate the element fading out
+            // Set explicit height so we can animate it
+            gsap.set(elementToRemove, { height: currentHeight, overflow: 'hidden' })
+            
+            // Animate fade out and collapse height together
             gsap.to(elementToRemove, {
                 opacity: 0,
-                x: -50,
+                x: -30,
                 duration: 0.3,
                 ease: 'power2.out',
+                delay: 0.35,
                 onComplete: () => {
-                    // After fade out, remove from state and animate remaining items
-                    setFridgeItems((prevItems) => {
-                        // Schedule Flip animation for next render
-                        requestAnimationFrame(() => {
-                            if (listRef.current) {
-                                Flip.from(flipState, {
-                                    duration: 0.3,
-                                    ease: 'power2.out',
-                                    targets: '.list-item',
-                                })
-                            }
-                        })
-                        const newItems = prevItems.filter((item) => item.item_id !== id)
-                        return newItems
-                    })
+                    // Capture Flip state right BEFORE removing from DOM
+                    // This captures positions of all items including the one about to be removed
+                    deleteFlipStateRef.current = Flip.getState('.list-item')
+                    
+                    // Remove from state - useLayoutEffect will handle the animation
+                    setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
                 }
             })
         } else {
@@ -262,6 +260,18 @@ export default function LaptopPage ()
             console.log('catching handleDeleteItem error:', error)
         }
     }
+
+    // Handle delete animation after DOM updates
+    useGSAP(() => {
+        if (deleteFlipStateRef.current) {
+            Flip.from(deleteFlipStateRef.current, {
+                duration: 0.3,
+                ease: 'power2.out',
+                targets: '.list-item',
+            })
+            deleteFlipStateRef.current = null
+        }
+    }, { dependencies: [fridgeItems], scope: listRef.current })
 
     const callUploadPhotoApi = async (base64Image) =>
     {
@@ -358,63 +368,113 @@ export default function LaptopPage ()
         }
     }
 
-    const handleClickLogout = () =>
-    {
-        localStorage.removeItem('user_token')
-        router.push('/')
-    }
-
-    // useGSAP hook handles animations and cleanup
+    // useGSAP hook handles add item animation
     useGSAP(() => {
-        // If a new item was just added, animate its entry and move other items
+        // If a new item was just added, animate its entry
         if (lastAddedIndex.current !== null && listRef.current) {
-            const newItemElement = listRef.current.children[lastAddedIndex.current]
+            const newItemElement = listRef.current.children[lastAddedIndex.current] as HTMLElement
             
-            // Animate existing items moving down using Flip
-            if (flipStateRef.current && newItemElement) {
-                // Hide the new item initially
-                gsap.set(newItemElement, { opacity: 0, y: -30 })
-                
-                // 1. First: Slide down existing items to make space
+            if (newItemElement && flipStateRef.current) {
+                // 1. Animate existing items sliding down using Flip
                 Flip.from(flipStateRef.current, {
                     duration: 0.3,
                     ease: 'power2.out',
-                    targets: '.list-item:not(:first-child)',  // Exclude new item from Flip
+                    targets: '.list-item',
+                    onEnter: (elements) => {
+                        // Keep new element hidden during Flip
+                        return gsap.set(elements, { opacity: 0 })
+                    },
                     onComplete: () => {
-                        // 2. Then: Animate the new item entry
-                        gsap.to(newItemElement, {
+                        // 2. After items slide down, fade in the new item
+                        gsap.fromTo(newItemElement, {
+                            opacity: 0,
+                            y: -20
+                        }, {
                             opacity: 1,
                             y: 0,
                             duration: 0.3,
-                            ease: 'power2.out'
+                            ease: 'power2.out',
+                            onComplete: () => {
+                                // Clear the newly added ID after animation
+                                newlyAddedItemId.current = null
+                                // Reset ref so we don't re-animate on other state changes
+                                lastAddedIndex.current = null
+                            }
                         })
                     }
                 })
+                
                 flipStateRef.current = null
             } else if (newItemElement) {
                 // Fallback: just animate the new item
-                gsap.fromTo(
-                    newItemElement,
-                    { opacity: 0, y: -30 },
-                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-                )
+                console.log('fallback animation for new item')
+                gsap.fromTo(newItemElement, {
+                    opacity: 0,
+                    y: -20
+                }, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        newlyAddedItemId.current = null
+                        // Reset ref so we don't re-animate on other state changes
+                        lastAddedIndex.current = null
+                    }
+                })
             }
-
-
-            // Reset the ref so we don't re-animate on other state changes
-            lastAddedIndex.current = null
         }
-    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
+    }, [fridgeItems])
+
+    // Filter items based on search query
+    const filteredItems = searchQuery
+        ? fridgeItems.filter(item => 
+            item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : fridgeItems
+
+    // Animate search result changes
+    useGSAP(() => {
+        if (!listRef.current) return
+        
+        const currentIds = filteredItems.slice(0, visibleCount.current).map(item => item.item_id)
+        const prevIds = prevFilteredIdsRef.current
+        
+        // Skip animation if this is from add/delete (handled separately)
+        if (lastAddedIndex.current !== null) {
+            prevFilteredIdsRef.current = currentIds
+            return
+        }
+        
+        // Find items that are newly appearing
+        const newlyAppearing = currentIds.filter(id => !prevIds.includes(id))
+        
+        // Animate newly appearing items
+        if (newlyAppearing.length > 0 && prevIds.length > 0) {
+            newlyAppearing.forEach(id => {
+                const element = listRef.current?.querySelector(`[data-flip-id="${id}"]`)
+                if (element) {
+                    gsap.fromTo(element, 
+                        { opacity: 0, scale: 0.95 },
+                        { opacity: 1, scale: 1, duration: 0.25, ease: 'power2.out' }
+                    )
+                }
+            })
+        }
+        
+        prevFilteredIdsRef.current = currentIds
+    }, { dependencies: [filteredItems, searchQuery], scope: listRef.current })
+
+    useEffect(() => {
+        // Reset visible count and hasMore when search query changes
+        visibleCount.current = pageSize.current
+        setHasMore(filteredItems.length > pageSize.current)
+    }, [searchQuery, fridgeItems])
 
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
-                <Box sx={{
-                    display: 'flex',            // Use flexbox for layout
-                    justifyContent: 'center',   // Center the entire layout horizontally
-                    alignItems: 'center',       // Align items vertically
-                }}>
-                </Box>
+
                 <Box ref={listRef} sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -424,15 +484,20 @@ export default function LaptopPage ()
                     gap: '1.5em'
                 }}>
                     {
-                        fridgeItems.map((item, index) =>
+                        filteredItems.slice(0, visibleCount.current).map((item, index) =>
                         {
+                            const isNewlyAdded = item.item_id === newlyAddedItemId.current
                             return (
-                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
+                                <div 
+                                    className='list-item' 
+                                    key={item.item_id} 
+                                    data-flip-id={item.item_id}
+                                    style={isNewlyAdded ? { opacity: 0 } : undefined}
+                                >
                                     <ItemInfoField
                                         fridge_item={item}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
                                         handleUpdateItem={handleUpdateItem}
-                                        isMobile={isMobile}
                                     />
                                 </div>
                             )
@@ -442,24 +507,33 @@ export default function LaptopPage ()
                 </Box >
                 
                 {/* Load More Button */}
-                {hasMorePages && (
+                {!searchQuery && hasMore && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
                         <Button 
                             variant="outlined" 
                             onClick={loadMoreItems}
-                            disabled={isLoadingMore}
+                            disabled={!hasMore}
                             sx={{ minWidth: '150px' }}
                         >
-                            {isLoadingMore ? 'Loading...' : 'Load More'}
+                            {hasMore && 'Load More'}
                         </Button>
                     </Box>
                 )}
                 
                 {/* Show message when all items are loaded */}
-                {!hasMorePages && fridgeItems.length > 0 && (
+                {!searchQuery && !hasMore && fridgeItems.length > 0 && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
                         <Typography variant="body2" color="text.secondary">
                             All items loaded ({fridgeItems.length} total)
+                        </Typography>
+                    </Box>
+                )}
+                
+                {/* Show search results count */}
+                {searchQuery && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            {filteredItems.length} {filteredItems.length === 1 ? 'result' : 'results'} found
                         </Typography>
                     </Box>
                 )}
@@ -468,5 +542,5 @@ export default function LaptopPage ()
             {/* Floating Action Button in bottom right */}
             <AddItemButton handleAddItem={handleAddItem} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
         </>
-    )   
+    )
 }

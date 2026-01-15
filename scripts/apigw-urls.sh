@@ -32,6 +32,7 @@ case $1 in
     build)
         cd ../frontend/src
         npm run build
+        npm run start
         ;;
     *)
         echo "No build option provided. Use 'dev' or 'build'."
