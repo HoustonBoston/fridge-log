@@ -465,6 +465,12 @@ export default function LaptopPage ()
         prevFilteredIdsRef.current = currentIds
     }, { dependencies: [filteredItems, searchQuery], scope: listRef.current })
 
+    useEffect(() => {
+        // Reset visible count and hasMore when search query changes
+        visibleCount.current = pageSize.current
+        setHasMore(filteredItems.length > pageSize.current)
+    }, [searchQuery, fridgeItems])
+
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
