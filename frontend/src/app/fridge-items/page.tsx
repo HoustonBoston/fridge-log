@@ -44,6 +44,10 @@ export default function LaptopPage ()
     let lastAddedIndex = useRef(null)
     // Store Flip state before DOM changes
     let flipStateRef = useRef(null)
+    // Store Flip state for delete animation
+    const deleteFlipStateRef = useRef(null)
+    // Track newly added item ID to apply initial hidden style
+    const newlyAddedItemId = useRef<string | null>(null)
     // Track previous filtered items for search animation
     const prevFilteredIdsRef = useRef<string[]>([])
     
@@ -169,6 +173,9 @@ export default function LaptopPage ()
             flipStateRef.current = Flip.getState('.list-item',)
         }
 
+        // Mark this item as newly added so it renders hidden
+        newlyAddedItemId.current = item.item_id
+
         setFridgeItems([item, ...fridgeItems])
         lastAddedIndex.current = 0;
 
@@ -223,16 +230,15 @@ export default function LaptopPage ()
             gsap.to(elementToRemove, {
                 opacity: 0,
                 x: -30,
-                height: 0,
-                marginTop: 0,
-                marginBottom: 0,
-                paddingTop: 0,
-                paddingBottom: 0,
                 duration: 0.3,
                 ease: 'power2.out',
                 delay: 0.35,
                 onComplete: () => {
-                    // After animation completes, remove from state
+                    // Capture Flip state right BEFORE removing from DOM
+                    // This captures positions of all items including the one about to be removed
+                    deleteFlipStateRef.current = Flip.getState('.list-item')
+                    
+                    // Remove from state - useLayoutEffect will handle the animation
                     setFridgeItems((prevItems) => prevItems.filter((item) => item.item_id !== id))
                 }
             })
@@ -254,6 +260,18 @@ export default function LaptopPage ()
             console.log('catching handleDeleteItem error:', error)
         }
     }
+
+    // Handle delete animation after DOM updates
+    useGSAP(() => {
+        if (deleteFlipStateRef.current) {
+            Flip.from(deleteFlipStateRef.current, {
+                duration: 0.3,
+                ease: 'power2.out',
+                targets: '.list-item',
+            })
+            deleteFlipStateRef.current = null
+        }
+    }, { dependencies: [fridgeItems], scope: listRef.current })
 
     const callUploadPhotoApi = async (base64Image) =>
     {
@@ -350,46 +368,63 @@ export default function LaptopPage ()
         }
     }
 
-    // useGSAP hook handles animations and cleanup
+    // useGSAP hook handles add item animation
     useGSAP(() => {
-        // If a new item was just added, animate its entry and move other items
+        // If a new item was just added, animate its entry
         if (lastAddedIndex.current !== null && listRef.current) {
-            const newItemElement = listRef.current.children[lastAddedIndex.current]
+            const newItemElement = listRef.current.children[lastAddedIndex.current] as HTMLElement
             
-            // Animate existing items moving down using Flip
-            if (flipStateRef.current && newItemElement) {
-                // Hide the new item initially
-                gsap.set(newItemElement, { opacity: 0, y: -30 })
-                
-                // 1. First: Slide down existing items to make space
+            if (newItemElement && flipStateRef.current) {
+                // 1. Animate existing items sliding down using Flip
                 Flip.from(flipStateRef.current, {
                     duration: 0.3,
                     ease: 'power2.out',
-                    targets: '.list-item:not(:first-child)',  // Exclude new item from Flip
+                    targets: '.list-item',
+                    onEnter: (elements) => {
+                        // Keep new element hidden during Flip
+                        return gsap.set(elements, { opacity: 0 })
+                    },
                     onComplete: () => {
-                        // 2. Then: Animate the new item entry
-                        gsap.to(newItemElement, {
+                        // 2. After items slide down, fade in the new item
+                        gsap.fromTo(newItemElement, {
+                            opacity: 0,
+                            y: -20
+                        }, {
                             opacity: 1,
                             y: 0,
                             duration: 0.3,
-                            ease: 'power2.out'
+                            ease: 'power2.out',
+                            onComplete: () => {
+                                // Clear the newly added ID after animation
+                                newlyAddedItemId.current = null
+                                // Reset ref so we don't re-animate on other state changes
+                                lastAddedIndex.current = null
+                            }
                         })
                     }
                 })
+                
                 flipStateRef.current = null
             } else if (newItemElement) {
                 // Fallback: just animate the new item
-                gsap.fromTo(
-                    newItemElement,
-                    { opacity: 0, y: -30 },
-                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-                )
+                console.log('fallback animation for new item')
+                gsap.fromTo(newItemElement, {
+                    opacity: 0,
+                    y: -20
+                }, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        newlyAddedItemId.current = null
+                        // Reset ref so we don't re-animate on other state changes
+                        lastAddedIndex.current = null
+                    }
+                })
             }
-
-            // Reset the ref so we don't re-animate on other state changes
-            lastAddedIndex.current = null
         }
-    }, { dependencies: [fridgeItems], scope: listRef })  // Reruns when fridgeItems state changes, scope restricted to only items inside the list
+    }, [fridgeItems])
 
     // Filter items based on search query
     const filteredItems = searchQuery
@@ -399,7 +434,7 @@ export default function LaptopPage ()
         : fridgeItems
 
     // Animate search result changes
-    useEffect(() => {
+    useGSAP(() => {
         if (!listRef.current) return
         
         const currentIds = filteredItems.slice(0, visibleCount.current).map(item => item.item_id)
@@ -428,7 +463,7 @@ export default function LaptopPage ()
         }
         
         prevFilteredIdsRef.current = currentIds
-    }, [filteredItems, searchQuery])
+    }, { dependencies: [filteredItems, searchQuery], scope: listRef.current })
 
     return (
         <>
@@ -445,8 +480,14 @@ export default function LaptopPage ()
                     {
                         filteredItems.slice(0, visibleCount.current).map((item, index) =>
                         {
+                            const isNewlyAdded = item.item_id === newlyAddedItemId.current
                             return (
-                                <div className='list-item' key={item.item_id} data-flip-id={item.item_id}>
+                                <div 
+                                    className='list-item' 
+                                    key={item.item_id} 
+                                    data-flip-id={item.item_id}
+                                    style={isNewlyAdded ? { opacity: 0 } : undefined}
+                                >
                                     <ItemInfoField
                                         fridge_item={item}
                                         handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
