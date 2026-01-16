@@ -14,6 +14,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  
+  const hideNavPaths = ['/login', '/signup']
+  const hideNav = hideNavPaths.includes(window.location.pathname)
+
   return (
     <html lang="en">
       <head>
@@ -25,7 +29,7 @@ export default function RootLayout({
           <FridgeItemsProvider>
             <SearchProvider>
               <GoogleOAuthProvider clientId={clientId}>
-                <NavBar />
+                {!hideNav && <NavBar />}
                 <div id="root" style={{ marginTop: '4em' }}>{children}</div>
               </GoogleOAuthProvider>
             </SearchProvider>

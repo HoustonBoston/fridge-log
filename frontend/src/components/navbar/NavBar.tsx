@@ -1,3 +1,5 @@
+'use client'
+
 import './NavBar.css'
 
 import { LogoutOutlined, SearchOutlined } from '@mui/icons-material'
@@ -5,13 +7,14 @@ import { Box, IconButton, TextField } from '@mui/material'
 import { useState, useRef, useEffect } from 'react'
 
 import { useSearch } from '../../contexts/SearchContext'
-import router from 'next/router'
+import { useRouter } from 'next/navigation'
 
 
 export default function NavBar() {
     const [searchOpen, setSearchOpen] = useState<boolean>(false)
     const [searchQuery, setSearchQuery] = useSearch()
     const inputRef = useRef<HTMLInputElement>(null)
+    const router = useRouter()
 
     const handleClickLogout = () =>
     {

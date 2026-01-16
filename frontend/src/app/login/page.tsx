@@ -1,20 +1,22 @@
 'use client'
 
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google"
-import { Box, Typography, Card } from "@mui/material"
+import { Box, Typography, Card, TextField, Button, Input } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from 'react'
 import { jwtDecode } from "jwt-decode"
 import Image from 'next/image'
+import Form from "next/form"
 
 import urls from "../../urls"
-import image from '../../fridge.png'
+import img from '../../fridge.png'
 
 import DecodedToken from "../../interfaces/DecodedToken"
 
 export default function LoginPage(): JSX.Element | null {
     const router = useRouter()
     const [isChecking, setIsChecking] = useState<boolean>(true)
+    const [email, setEmail] = useState<string>('')
 
     useEffect(() => {
         // Check if user is already logged in and redirect to fridge-items
@@ -59,7 +61,7 @@ export default function LoginPage(): JSX.Element | null {
         router.push('/fridge-items')
     }
 
-    const hanldeLoginError = (): void => {
+    const handleLoginError = (): void => {
         console.log('login error')
     }
 
@@ -68,34 +70,76 @@ export default function LoginPage(): JSX.Element | null {
         return null
     }
 
+    const formAction = (formData: FormData) => {
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        // Here you would typically send the email and password to your backend for verification.
+        console.log('Email:', email);
+        console.log('Password:', password);
+    }
+
     return (
         <Box sx={{
-            "display": "flex",
-            "alignItems": "center",
-            "justifyContent": "center",
-            "flexDirection": "column",
-            "height": "50vh"
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            gap: "2em",
+            marginTop: "-4em"
         }}>
-            <Image src={image.src} alt="Logo" height={100} width={100}/>
-            <br></br>
-            <Typography>Welcome to Fridge Log!</Typography>
-            <br></br>
-            <Card sx={{
-                width: "15em",
-                color: "red",
-                fontSize: 20
-            }} variant="outlined">
-                <Typography>NOTE: If you are a new user, you will see an email from AWS in your spam folder.
-                    Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
-            </Card>
-            <br></br>
-            <GoogleLogin
-                text="continue_with"
-                theme="filled_blue"
-                type="standard"
-                onSuccess={handleLoginSuccess}
-                onError={hanldeLoginError}
-            />
+
+            {/* <Card sx={{
+                    width: "50%",
+                    color: "red",
+                    fontSize: 20
+                }} variant="outlined">
+                    <Typography>If you are a new user, you will see an email from AWS in your spam folder.
+                        Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
+                </Card> */}
+
+            <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                flexDirection: "column",
+                border: "0.01em solid #ccc",
+                borderRadius: "0.5em",
+                padding: "1em 1em",
+            }}>
+                <Form action={formAction} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <TextField 
+                        label="Email" 
+                        placeholder="Email" 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        sx={{ marginBottom: "0.5em", backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                    />
+                    <TextField required={!!email} label="Password" placeholder="Password" type="password"
+                        sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                    />
+                    <Button type="submit" variant="contained" sx={{ marginTop: "1em", marginBottom: "1em", width: "100%" }}>Login</Button>
+                </Form>
+                <br></br>
+                {/** separator with text */}
+                <Box sx={{display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "row", width: "100%"}}>
+                    {/** Left line */}
+                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "#ccc" }}></Box>
+                    <Typography sx={{margin: "0 0.5em"}}>OR</Typography>
+                    {/** Right line */}
+                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "#ccc" }}></Box>
+                </Box>
+                <br />
+                <GoogleLogin
+                    text="continue_with"
+                    theme="filled_blue"
+                    type="standard"
+                    shape="pill"
+                    onSuccess={handleLoginSuccess}
+                    onError={handleLoginError}
+                />
+            </Box>
         </Box>
     )
 }
