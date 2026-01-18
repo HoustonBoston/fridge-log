@@ -1,7 +1,7 @@
 'use client'
 
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google"
-import { Box, Typography, Card, TextField, Button, Input } from "@mui/material"
+import { Box, Typography, Card, TextField, Button, Input, Alert } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from 'react'
 import { jwtDecode } from "jwt-decode"
@@ -18,6 +18,8 @@ export default function LoginPage(): JSX.Element | null {
     const router = useRouter()
     const [isChecking, setIsChecking] = useState<boolean>(true)
     const [email, setEmail] = useState<string>('')
+    const [password, setPassword] = useState<string>('')
+    const [confirmPassword, setConfirmPassword] = useState<string>('')
 
     useEffect(() => {
         // Check if user is already logged in and redirect to fridge-items
@@ -80,6 +82,17 @@ export default function LoginPage(): JSX.Element | null {
         console.log('Password:', password);
     }
 
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (name === 'email') {
+            setEmail(value);
+        } else if (name === 'password') {
+            setPassword(value);
+        } else if (name === 'confirmPassword') {
+            setConfirmPassword(value);
+        }
+    }
+
     return (
         <Box sx={{
             display: "flex",
@@ -110,22 +123,38 @@ export default function LoginPage(): JSX.Element | null {
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             }}>
                 <Image src={img} alt="Fridge Log" width={100} height={100} />
-                <Form action={formAction} style={{ gap: "0.5em", display: "flex", flexDirection: "column", alignItems: "center", marginTop: "1em" }}>
+                <Form action={formAction} style={{ gap: "0.5em", display: "flex", flexDirection: "column", marginTop: "1em", width: "100%" }}>
                     <TextField
+                        required={password != '' || confirmPassword != '' || email != ''}
                         label="Email" 
                         placeholder="Email" 
                         type="email" 
+                        name="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={onChange}
                         sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                        fullWidth
                     />
                     <TextField required={!!email} label="Password" placeholder="Password" type="password"
                         sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                        name="password"
+                        onChange={onChange}
+                        fullWidth
                     />
                     <TextField required={!!email} label="Confirm Password" placeholder=" Confirm Password" type="password"
                         sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                        name="confirmPassword"
+                        onChange={onChange}
+                        fullWidth
                     />
-                    <Button type="submit" variant="contained" sx={{ width: "100%" }}>Sign Up</Button>
+
+                    {password !== confirmPassword && (
+                        <Alert color="error" severity="error">
+                            Passwords do not match.
+                        </Alert>
+                    )}
+
+                    <Button fullWidth type="submit" variant="contained">Sign Up</Button>
                 </Form>
 
                 <Typography style={{marginTop: "1em"}}>Already have an account? <Link href="/login">Login</Link></Typography>
