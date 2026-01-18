@@ -122,10 +122,13 @@ export default function LoginPage(): JSX.Element | null {
                     <TextField required={!!email} label="Password" placeholder="Password" type="password"
                         sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
                     />
-                    <Button type="submit" variant="contained" sx={{ width: "100%" }}>Login</Button>
+                    <TextField required={!!email} label="Confirm Password" placeholder=" Confirm Password" type="password"
+                        sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
+                    />
+                    <Button type="submit" variant="contained" sx={{ width: "100%" }}>Sign Up</Button>
                 </Form>
 
-                <Typography style={{marginTop: "1em"}}>Don't have an account? <Link href="/signup">Sign Up</Link></Typography>
+                <Typography style={{marginTop: "1em"}}>Already have an account? <Link href="/login">Login</Link></Typography>
 
                 {/** separator with text */}
                 <Box sx={{ margin: "0.5em 0", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "row", width: "100%" }}>
