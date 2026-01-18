@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   
-  const hideNavPaths = ['/login', '/signup']
-  const hideNav = hideNavPaths.includes(window.location.pathname)
+  const hideNavPaths = new Set(['/login', '/signup'])
+  const hideNav = hideNavPaths.has(window.location.pathname)
 
   return (
     <html lang="en">
