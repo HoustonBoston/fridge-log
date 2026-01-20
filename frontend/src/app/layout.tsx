@@ -31,7 +31,7 @@ export default function RootLayout({
             <SearchProvider>
               <GoogleOAuthProvider clientId={clientId}>
                 {!hideNavPaths.has(pathname) && <NavBar />}
-                <div id="root" style={{ marginTop: '4em' }}>{children}</div>
+                <div id="root" style={{ marginTop: hideNavPaths.has(pathname) ? 0 : '4em' }}>{children}</div>
               </GoogleOAuthProvider>
             </SearchProvider>
           </FridgeItemsProvider>

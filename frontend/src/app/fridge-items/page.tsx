@@ -461,7 +461,6 @@ export default function LaptopPage ()
                 }
             })
         }
-        
         prevFilteredIdsRef.current = currentIds
     }, { dependencies: [filteredItems, searchQuery], scope: listRef.current })
 
@@ -540,7 +539,12 @@ export default function LaptopPage ()
             </Box>
                 
             {/* Floating Action Button in bottom right */}
-            <AddItemButton handleAddItem={handleAddItem} handleClickPicture={handleClickPicture} status={fabStatus} loading={isProcessingPhoto} />
+            <AddItemButton 
+                handleAddItem={handleAddItem} 
+                handleClickPicture={handleClickPicture} 
+                status={fabStatus} 
+                loading={isProcessingPhoto} 
+            />
         </>
     )
 }

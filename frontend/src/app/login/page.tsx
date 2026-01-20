@@ -100,8 +100,7 @@ export default function LoginPage(): JSX.Element | null {
                     height={120}
                     onLoad={() => setImageLoaded(true)}
                     style={{
-                        transform: imageLoaded ? "translateY(0)" : "translateY(-20px)",
-                        transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+                        transition: "opacity 0.5s ease-out",
                     }}
                 />
                 
