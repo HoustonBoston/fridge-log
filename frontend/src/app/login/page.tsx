@@ -12,12 +12,11 @@ import urls from "../../urls"
 import img from '../../fridge.png'
 
 import DecodedToken from "../../interfaces/DecodedToken"
-import Link from "next/link"
 
 export default function LoginPage(): JSX.Element | null {
     const router = useRouter()
     const [isChecking, setIsChecking] = useState<boolean>(true)
-    const [email, setEmail] = useState<string>('')
+    const [imageLoaded, setImageLoaded] = useState<boolean>(false)
 
     useEffect(() => {
         // Check if user is already logged in and redirect to fridge-items
@@ -71,69 +70,61 @@ export default function LoginPage(): JSX.Element | null {
         return null
     }
 
-    const formAction = (formData: FormData) => {
-        const email = formData.get('email') as string;
-        const password = formData.get('password') as string;
-
-        // Here you would typically send the email and password to your backend for verification.
-        console.log('Email:', email);
-        console.log('Password:', password);
-    }
-
     return (
         <Box sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            height: "100vh",
-            gap: "2em",
-            marginTop: "-4em"
+            minHeight: "100vh",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            paddingTop: "-4em",
         }}>
-
-            {/* <Card sx={{
-                    width: "50%",
-                    color: "red",
-                    fontSize: 20
-                }} variant="outlined">
-                    <Typography>If you are a new user, you will see an email from AWS in your spam folder.
-                        Click that link to confirm email subscription so you can start receiving notifications on your items expiring soon.</Typography>
-                </Card> */}
-
             <Box sx={{
                 display: "flex",
                 alignItems: "center",
                 flexDirection: "column",
-                border: "0.01em solid #ccc",
-                borderRadius: "0.5em",
-                padding: "1em 1em",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "white",
+                borderRadius: "1.5em",
+                padding: "3em 4em",
+                boxShadow: "0 1.25em 3.75em rgba(0, 0, 0, 0.2)",
+                gap: "1.5em",
+                opacity: imageLoaded ? 1 : 0,
+                transform: imageLoaded ? "translateY(0)" : "translateY(-20px)",
+                transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
             }}>
-                <Image src={img} alt="Fridge Log" width={100} height={100} />
-                <Form action={formAction} style={{ gap: "0.5em", display: "flex", flexDirection: "column", alignItems: "center", marginTop: "1em" }}>
-                    <TextField
-                        label="Email" 
-                        placeholder="Email" 
-                        type="email" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
-                    />
-                    <TextField required={!!email} label="Password" placeholder="Password" type="password"
-                        sx={{ backgroundColor: "rgba(63, 161, 209, 0.3)" }}
-                    />
-                    <Button type="submit" variant="contained" sx={{ width: "100%" }}>Login</Button>
-                </Form>
-
-                <Typography style={{marginTop: "1em"}}>Don't have an account? <Link href="/signup">Sign Up</Link></Typography>
-
-                {/** separator with text */}
-                <Box sx={{ margin: "0.5em 0", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "row", width: "100%" }}>
-                    {/** Left line */}
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "#ccc" }}></Box>
-                    <Typography sx={{margin: "0 0.5em"}}>OR</Typography>
-                    {/** Right line */}
-                    <Box sx={{ flex: 1, height: "1px", backgroundColor: "#ccc" }}></Box>
+                <Image 
+                    src={img} 
+                    alt="Fridge Log" 
+                    width={120} 
+                    height={120}
+                    onLoad={() => setImageLoaded(true)}
+                    style={{
+                        transform: imageLoaded ? "translateY(0)" : "translateY(-20px)",
+                        transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+                    }}
+                />
+                
+                <Box sx={{ textAlign: "center", mb: 1 }}>
+                    <Typography 
+                        variant="h4" 
+                        sx={{ 
+                            fontWeight: 700, 
+                            color: "#333",
+                            mb: 0.5
+                        }}
+                    >
+                        Fridge Log
+                    </Typography>
+                    <Typography 
+                        variant="body1" 
+                        sx={{ 
+                            color: "#666",
+                            fontSize: "0.95rem"
+                        }}
+                    >
+                        Track your food, reduce waste
+                    </Typography>
                 </Box>
 
                 <GoogleLogin
@@ -144,6 +135,18 @@ export default function LoginPage(): JSX.Element | null {
                     onSuccess={handleLoginSuccess}
                     onError={handleLoginError}
                 />
+                
+                <Typography 
+                    variant="caption" 
+                    sx={{ 
+                        color: "#999", 
+                        textAlign: "center",
+                        maxWidth: "20em",
+                        lineHeight: 1.5
+                    }}
+                >
+                    Sign in to manage your fridge items and get expiration reminders
+                </Typography>
             </Box>
         </Box>
     )

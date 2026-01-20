@@ -13,8 +13,13 @@ import { useRouter } from 'next/navigation'
 export default function NavBar() {
     const [searchOpen, setSearchOpen] = useState<boolean>(false)
     const [searchQuery, setSearchQuery] = useSearch()
+    const [mounted, setMounted] = useState<boolean>(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const handleClickLogout = () =>
     {
@@ -44,7 +49,13 @@ export default function NavBar() {
     }, [searchOpen])
 
     return (
-        <header className="navbar">
+        <header 
+            className="navbar" 
+            style={{ 
+                opacity: mounted ? 1 : 0,
+                transition: 'opacity 0.5s ease-in'
+            }}
+        >
             <Box className="nav-btns" sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', justifyContent: 'flex-end' }}>
                 <Box
                     sx={{
@@ -73,10 +84,26 @@ export default function NavBar() {
                         }}
                     />
                 </Box>
-                <IconButton onClick={handleSearchClick} sx={{ color: 'white' }}>
+                <IconButton 
+                    onClick={handleSearchClick} 
+                    sx={{ 
+                        color: 'white',
+                        opacity: mounted ? 1 : 0,
+                        transform: mounted ? 'translateY(0)' : 'translateY(-10px)',
+                        transition: 'opacity 0.4s ease-out 0.1s, transform 0.4s ease-out 0.1s'
+                    }}
+                >
                     <SearchOutlined />
                 </IconButton>
-                <IconButton onClick={handleClickLogout} sx={{ color: 'white' }}>
+                <IconButton 
+                    onClick={handleClickLogout} 
+                    sx={{ 
+                        color: 'white',
+                        opacity: mounted ? 1 : 0,
+                        transform: mounted ? 'translateY(0)' : 'translateY(-10px)',
+                        transition: 'opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s'
+                    }}
+                >
                     <LogoutOutlined />
                 </IconButton>
             </Box>

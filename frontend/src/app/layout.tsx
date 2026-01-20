@@ -2,6 +2,7 @@
 
 import React from "react"
 import { GoogleOAuthProvider } from "@react-oauth/google"
+import { usePathname } from "next/navigation"
 import NavBar from "../components/navbar/NavBar"
 import FridgeItemsProvider from "../contexts/ItemsContext"
 import IsMobileProvider from "../contexts/IsMobileContext"
@@ -14,9 +15,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  
-  const hideNavPaths = new Set(['/login', '/signup'])
-  const hideNav = hideNavPaths.has(window.location.pathname)
+
+  const pathname = usePathname()
+  const hideNavPaths = new Set(['/login'])
 
   return (
     <html lang="en">
@@ -29,7 +30,7 @@ export default function RootLayout({
           <FridgeItemsProvider>
             <SearchProvider>
               <GoogleOAuthProvider clientId={clientId}>
-                {!hideNav && <NavBar />}
+                {!hideNavPaths.has(pathname) && <NavBar />}
                 <div id="root" style={{ marginTop: '4em' }}>{children}</div>
               </GoogleOAuthProvider>
             </SearchProvider>
