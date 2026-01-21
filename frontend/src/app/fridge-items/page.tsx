@@ -4,10 +4,11 @@ import { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from "uuid"
 import ItemInfoField from "../../components/fields/ItemInfoField";
 import AddItemButton from "../../components/buttons/AddItemButton";
-import { Box, Button } from '@mui/material';
+import { Box, Button, Skeleton, Paper } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import Typography from '@mui/material/Typography';
 import { useRouter } from 'next/navigation';
+import KitchenIcon from '@mui/icons-material/Kitchen';
 
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc'
@@ -35,6 +36,8 @@ export default function LaptopPage ()
     const [searchQuery, setSearchQuery] = useSearch()
     const [fabStatus, setFabStatus] = useState('idle')  // 'idle' | 'success' | 'error'    
     const [isProcessingPhoto, setIsProcessingPhoto] = useState(false)  // Loading state for photo processing
+    const [isLoading, setIsLoading] = useState(true)  // Loading state for initial fetch
+    const [mounted, setMounted] = useState(false)  // For fade-in animation
     const pageSize = useRef(10)  // Items per page
     const visibleCount = useRef(pageSize.current)
     const [hasMore, setHasMore] = useState(false)  // Whether more items exist
@@ -57,6 +60,11 @@ export default function LaptopPage ()
     
     const [userEmail, setUserEmail] = useState<string | null>(null)
 
+    // Trigger mount animation
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     // Protect the page - redirect to login if not authenticated
     useEffect(() => {
         const userToken = localStorage.getItem('user_token')
@@ -73,6 +81,7 @@ export default function LaptopPage ()
     {
         if (!userEmail) return
         
+        setIsLoading(true)
         let apiUrl = `${urls.readFromDDBUrl}ReadFromDDB/items?email=${userEmail}`
         console.log('trying to call fetch items API')
 
@@ -99,6 +108,8 @@ export default function LaptopPage ()
             else console.error('callFetchItemsApi call failed in page.js')
         } catch (error) {
             console.log('error after fetch in callFetchItemsApi', error)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -472,77 +483,189 @@ export default function LaptopPage ()
 
     return (
         <>
-            <Box sx={
-            { 
-                display: "flex", 
-                justifyContent: "center", 
-                flexDirection: 'column', 
-                gap: "1em", 
-                marginTop: "5em" 
+            <Box sx={{ 
+                minHeight: '100vh',
+                background: 'linear-gradient(180deg, rgba(34, 174, 206, 0.05) 0%, rgba(255,255,255,1) 100%)',
+                paddingBottom: '6em'
             }}>
-
-                <Box ref={listRef} sx={{
+                {/* Header Section */}
+                <Box sx={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    width: '100%',
-                    justifyContent: 'center',
-                    gap: '1.5em'
+                    paddingTop: '2em',
+                    paddingBottom: '1.5em',
+                    opacity: mounted ? 1 : 0,
+                    transform: mounted ? 'translateY(0)' : 'translateY(-10px)',
+                    transition: 'opacity 0.4s ease-out, transform 0.4s ease-out',
                 }}>
-                    {
-                        filteredItems.slice(0, visibleCount.current).map((item, index) =>
-                        {
-                            const isNewlyAdded = item.item_id === newlyAddedItemId.current
-                            return (
-                                <div 
-                                    className='list-item' 
-                                    key={item.item_id} 
-                                    data-flip-id={item.item_id}
-                                    style={isNewlyAdded ? { opacity: 0 } : undefined}
+                    <Typography 
+                        variant="h4" 
+                        sx={{ 
+                            fontWeight: 600, 
+                            color: '#333',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3em'
+                        }}
+                    >
+                        <KitchenIcon sx={{ fontSize: '1.2em', color: 'rgba(34, 174, 206, 0.9)' }} />
+                        My Fridge
+                    </Typography>
+                    {!isLoading && fridgeItems.length > 0 && (
+                        <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
+                            {fridgeItems.length} {fridgeItems.length === 1 ? 'item' : 'items'} tracked
+                        </Typography>
+                    )}
+                </Box>
+
+                <Box sx={{ 
+                    display: "flex", 
+                    justifyContent: "center", 
+                    flexDirection: 'column', 
+                    gap: "1em",
+                    maxWidth: '800px',
+                    margin: '0 auto',
+                    padding: '0 1em',
+                }}>
+
+                    {/* Loading Skeleton */}
+                    {isLoading && (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5em' }}>
+                            {[1, 2, 3].map((i) => (
+                                <Paper 
+                                    key={i} 
+                                    elevation={0}
+                                    sx={{ 
+                                        padding: '1.5em', 
+                                        borderRadius: '1em',
+                                        width: '100%',
+                                        maxWidth: '500px',
+                                        border: '1px solid rgba(0,0,0,0.08)'
+                                    }}
                                 >
-                                    <ItemInfoField
-                                        fridge_item={item}
-                                        handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
-                                        handleUpdateItem={handleUpdateItem}
-                                    />
-                                </div>
-                            )
-                        }
-                        )
-                    }
-                </Box >
-                
-                {/* Load More Button */}
-                {!searchQuery && hasMore && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
-                        <Button 
-                            variant="outlined" 
-                            onClick={loadMoreItems}
-                            disabled={!hasMore}
-                            sx={{ minWidth: '150px' }}
-                        >
-                            {hasMore && 'Load More'}
-                        </Button>
-                    </Box>
-                )}
-                
-                {/* Show message when all items are loaded */}
-                {!searchQuery && !hasMore && fridgeItems.length > 0 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
-                        <Typography variant="body2" color="text.secondary">
-                            All items loaded ({fridgeItems.length} total)
-                        </Typography>
-                    </Box>
-                )}
-                
-                {/* Show search results count */}
-                {searchQuery && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '2em' }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {filteredItems.length} {filteredItems.length === 1 ? 'result' : 'results'} found
-                        </Typography>
-                    </Box>
-                )}
+                                    <Box sx={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
+                                        <Skeleton variant="rounded" width={200} height={56} />
+                                        <Skeleton variant="rounded" width={150} height={56} />
+                                        <Skeleton variant="circular" width={40} height={40} />
+                                    </Box>
+                                </Paper>
+                            ))}
+                        </Box>
+                    )}
+
+                    {/* Empty State */}
+                    {!isLoading && fridgeItems.length === 0 && (
+                        <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            padding: '4em 2em',
+                            opacity: mounted ? 1 : 0,
+                            transition: 'opacity 0.5s ease-out 0.2s',
+                        }}>
+                            <KitchenIcon sx={{ fontSize: '4em', color: 'rgba(34, 174, 206, 0.3)', mb: 2 }} />
+                            <Typography variant="h6" sx={{ color: '#666', mb: 1 }}>
+                                Your fridge is empty
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#999', textAlign: 'center' }}>
+                                Tap the + button to add your first item
+                            </Typography>
+                        </Box>
+                    )}
+
+                    {/* Items List */}
+                    {!isLoading && (
+                        <Box ref={listRef} sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            width: '100%',
+                            justifyContent: 'center',
+                            gap: '1em'
+                        }}>
+                            {
+                                filteredItems.slice(0, visibleCount.current).map((item, index) =>
+                                {
+                                    const isNewlyAdded = item.item_id === newlyAddedItemId.current
+                                    return (
+                                        <Paper 
+                                            className='list-item' 
+                                            key={item.item_id} 
+                                            data-flip-id={item.item_id}
+                                            elevation={0}
+                                            sx={{
+                                                padding: '0.5em 0.7em',
+                                                borderRadius: '1em',
+                                                border: '1px solid rgba(0,0,0,0.08)',
+                                                width: '95%',
+                                                maxWidth: '500px',
+                                                opacity: isNewlyAdded ? 0 : 1,
+                                                transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                                                '@media (hover: hover)': {
+                                                    '&:hover': {
+                                                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                                        borderColor: 'rgba(34, 174, 206, 0.3)',
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            <ItemInfoField
+                                                fridge_item={item}
+                                                handleDeleteItem={() => handleDeleteItem(item.item_id, item.timestamp, item.user_email, index)}
+                                                handleUpdateItem={handleUpdateItem}
+                                            />
+                                        </Paper>
+                                    )
+                                }
+                                )
+                            }
+                        </Box>
+                    )}
+                    
+                    {/* Load More Button */}
+                    {!searchQuery && hasMore && !isLoading && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1.5em', paddingBottom: '1em' }}>
+                            <Button 
+                                variant="outlined" 
+                                onClick={loadMoreItems}
+                                disabled={!hasMore}
+                                sx={{ 
+                                    minWidth: '150px',
+                                    borderRadius: '2em',
+                                    textTransform: 'none',
+                                    borderColor: 'rgba(34, 174, 206, 0.5)',
+                                    color: 'rgba(34, 174, 206, 1)',
+                                    '&:hover': {
+                                        borderColor: 'rgba(34, 174, 206, 0.8)',
+                                        backgroundColor: 'rgba(34, 174, 206, 0.05)',
+                                    }
+                                }}
+                            >
+                                Load More
+                            </Button>
+                        </Box>
+                    )}
+                    
+                    {/* Show message when all items are loaded */}
+                    {!searchQuery && !hasMore && fridgeItems.length > pageSize.current && !isLoading && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '1em' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                All items loaded
+                            </Typography>
+                        </Box>
+                    )}
+                    
+                    {/* Show search results count */}
+                    {searchQuery && !isLoading && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: '1em', paddingBottom: '1em' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {filteredItems.length} {filteredItems.length === 1 ? 'result' : 'results'} found
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
             </Box>
                 
             {/* Floating Action Button in bottom right */}
