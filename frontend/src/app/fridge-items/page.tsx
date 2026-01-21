@@ -537,7 +537,7 @@ export default function LaptopPage ()
                                     key={i} 
                                     elevation={0}
                                     sx={{ 
-                                        padding: '1.5em', 
+                                        padding: '0.5em 0.7em', 
                                         borderRadius: '1em',
                                         width: '100%',
                                         maxWidth: '500px',
