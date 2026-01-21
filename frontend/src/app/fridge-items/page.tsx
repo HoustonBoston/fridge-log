@@ -472,7 +472,14 @@ export default function LaptopPage ()
 
     return (
         <>
-            <Box sx={{ display: "flex", justifyContent: "center", flexDirection: 'column', gap: "1em" }}>
+            <Box sx={
+            { 
+                display: "flex", 
+                justifyContent: "center", 
+                flexDirection: 'column', 
+                gap: "1em", 
+                marginTop: "5em" 
+            }}>
 
                 <Box ref={listRef} sx={{
                     display: 'flex',
