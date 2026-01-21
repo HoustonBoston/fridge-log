@@ -86,12 +86,14 @@ export default function LoginPage(): JSX.Element | null {
                 flexDirection: "column",
                 backgroundColor: "white",
                 borderRadius: "1.5em",
-                padding: "3em 4em",
+                padding: { xs: "1em 0.5em", sm: "3em 4em" },
                 boxShadow: "0 1.25em 3.75em rgba(0, 0, 0, 0.2)",
-                gap: "1.5em",
+                gap: { xs: "1em", sm: "1.5em" },
                 opacity: imageLoaded ? 1 : 0,
                 transform: imageLoaded ? "translateY(0)" : "translateY(-20px)",
                 transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+                width: { xs: "90%", sm: "auto" },
+                maxWidth: "400px",
             }}>
                 <Image 
                     src={img} 
@@ -101,6 +103,8 @@ export default function LoginPage(): JSX.Element | null {
                     onLoad={() => setImageLoaded(true)}
                     style={{
                         transition: "opacity 0.5s ease-out",
+                        width: "clamp(80px, 20vw, 120px)",
+                        height: "auto",
                     }}
                 />
                 
@@ -110,7 +114,8 @@ export default function LoginPage(): JSX.Element | null {
                         sx={{ 
                             fontWeight: 700, 
                             color: "#333",
-                            mb: 0.5
+                            mb: 0.5,
+                            fontSize: { xs: "1.5rem", sm: "2.125rem" }
                         }}
                     >
                         Fridge Log
@@ -119,7 +124,7 @@ export default function LoginPage(): JSX.Element | null {
                         variant="body1" 
                         sx={{ 
                             color: "#666",
-                            fontSize: "0.95rem"
+                            fontSize: { xs: "0.85rem", sm: "0.95rem" }
                         }}
                     >
                         Track your food, reduce waste
