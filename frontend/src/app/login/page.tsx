@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from 'react'
 import { jwtDecode } from "jwt-decode"
 import Image from 'next/image'
-import Form from "next/form"
 
 import urls from "../../urls"
 import img from '../../fridge.png'

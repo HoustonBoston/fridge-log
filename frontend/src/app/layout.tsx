@@ -8,7 +8,12 @@ import FridgeItemsProvider from "../contexts/ItemsContext"
 import IsMobileProvider from "../contexts/IsMobileContext"
 import SearchProvider from "../contexts/SearchContext"
 
-const clientId = "726133421526-1e3g6etorn5s4re8h6hncg7mplhsqepp.apps.googleusercontent.com"
+import path from 'path'
+import process from 'process';
+
+process.loadEnvFile(path.join(__dirname, '../../.env'));
+
+const clientId = process.env.GOOGLE_CLIENT_ID
 
 export default function RootLayout({
   children,
