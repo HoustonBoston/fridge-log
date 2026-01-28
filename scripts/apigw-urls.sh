@@ -27,12 +27,12 @@ echo "export default urls;" >> $file
 case $1 in
     dev)
         cd ../frontend/src
-        npm run dev
+        bun run dev
         ;;
     build)
         cd ../frontend/src
-        npm run build
-        npm run start
+        bun run build
+        bun run start
         ;;
     *)
         echo "No build option provided. Use 'dev' or 'build'."
