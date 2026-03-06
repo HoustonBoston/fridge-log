@@ -19,3 +19,6 @@ On the root of the frontend/ directory, add a ```.env.local``` file with the env
 
 #### Installing k3s:
 For single-node cluster: ```curl -sfL https://get.k3s.io | sh -```
+
+### Tailscale funnel:
+1. Run ```tailscale funnel 30007``` for example (30007 is the node port of Kubernetes)
