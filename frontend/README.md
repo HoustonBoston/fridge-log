@@ -7,7 +7,7 @@ bun.js, aws CLI, Linux or Windows
 
 ### If containerizing (podman/docker are interchangeable)
 1. Run ```podman build -t fridge-log:latest .```
-2. Run ```podman run -p 3000 fridge-log:latest```
+2. Run ```podman run -p 0.0.0.0:3000:3000 fridge-log:latest```
 
 ### Kubernetes/k3s
 1. Run ```podman build -t fridge-log .```
