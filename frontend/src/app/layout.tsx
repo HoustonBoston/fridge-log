@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
 
   const pathname = usePathname()
-  const hideNavPaths = new Set(['/login'])
+  const hideNavPaths = new Set(['/login', "/"])
 
   return (
     <html lang="en">
