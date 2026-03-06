@@ -16,6 +16,6 @@ spec:
         - name: fridge-log-frontend
           image: fridge-log:latest
           command: ["bun", "run", "start"]
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000

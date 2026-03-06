@@ -11,7 +11,8 @@ bun.js, aws CLI, Linux or Windows
 
 ### Kubernetes/k3s
 1. Run ```podman build -t fridge-log .```
-2. Create the manifest files in frontend/k3s-manifest
+2. To let k3s access the locally built image, run ```podman save fridge-log:latest | sudo k3s ctr images import -```
+3. Create the manifest files in frontend/k3s-manifest
 
 #### Installing k3s:
 For single-node cluster: ```curl -sfL https://get.k3s.io | sh -```
