@@ -5,12 +5,12 @@ Fridge Log is an app to keep track of expiring items on the fridge, with the mos
 ### Requirements
 bun.js, aws CLI, Linux or Windows
 
-### If containerizing
-1. Run ```docker build -t fridge-log:latest .```
-2. Run ```docker run -p 3000 fridge-log:latest```
+### If containerizing (podman/docker are interchangeable)
+1. Run ```podman build -t fridge-log:latest .```
+2. Run ```podman run -p 3000 fridge-log:latest```
 
 ### Kubernetes/k3s
-1. Run ```docker build -t fridge-log .```
+1. Run ```podman build -t fridge-log .```
 2. Create the manifest files in frontend/k3s-manifest
 
 #### Installing k3s:
