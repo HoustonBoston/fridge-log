@@ -15,5 +15,6 @@ spec:
           containers:
             - name: fridge-log-frontend
               image: fridge-log:latest
+              imagePullPolicy: Never
               ports:
                 - containerPort: 3000
