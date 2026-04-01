@@ -326,8 +326,11 @@ export default function LaptopPage ()
                 try {
                     resJson = await callUploadPhotoApi(reader.result)
                     if (resJson) {
-                        setRelevantTexts(resJson.answer)
-                        setFabStatus('success')
+                        if (!resJson.answer.includes('not contain')) {
+                            setRelevantTexts(resJson.answer)
+                            setFabStatus('success')
+                        }
+                        setFabStatus('error')
                     } else {
                         setFabStatus('error')
                     }
