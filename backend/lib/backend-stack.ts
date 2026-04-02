@@ -18,6 +18,8 @@ const bundlingOptions = {
   forceDockerBundling: false,
 }
 
+process.loadEnvFile(path.join(__dirname, '../.env'));
+
 export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);

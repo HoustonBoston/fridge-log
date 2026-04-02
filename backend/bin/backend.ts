@@ -2,8 +2,9 @@
 import * as cdk from 'aws-cdk-lib/core';
 import { BackendStack } from '../lib/backend-stack';
 import process from 'process';
+import path from 'path';
 
-// process.loadEnvFile(path.join(__dirname, '../.env'));
+ process.loadEnvFile(path.join(__dirname, '../.env'));
 
 const app = new cdk.App();
 new BackendStack(app, 'FridgeLogStack', {
