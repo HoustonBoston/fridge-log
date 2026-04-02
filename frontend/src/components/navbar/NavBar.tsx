@@ -66,6 +66,7 @@ export default function NavBar() {
                     }}
                 >
                     <TextField
+                        id='navbar-search-input'
                         inputRef={inputRef}
                         size="small"
                         placeholder="Search..."
