@@ -1,9 +1,10 @@
 import * as cdk from 'aws-cdk-lib/core';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events_targets, aws_ssm } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
-import { LogGroup, LogRetention, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const LAMBDA_PATH = '../lambdas'
 
@@ -16,8 +17,6 @@ const bundlingOptions = {
   banner: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
   forceDockerBundling: false,
 }
-
-process.loadEnvFile(path.join(__dirname, '../.env'));
 
 export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -127,6 +126,12 @@ export class BackendStack extends cdk.Stack {
       functionName: 'ScanSendNotif',
       logGroup: scanSendNotifLogGroup
     })
+    // New IAM policy for SES permissions for the email.
+    scanSendNotifFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+      resources: ['arn:aws:ses:us-east-1:986376103464:identity/myhorsefly12345@gmail.com'],
+      effect: iam.Effect.ALLOW
+    }))
 
     const writeDDBLogGroup = new LogGroup(this, 'WriteDDBLogGroup', {
       logGroupName: `/aws/lambda/WriteDDB`,
