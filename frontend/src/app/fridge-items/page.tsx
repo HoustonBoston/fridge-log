@@ -15,8 +15,8 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 
 import { gsap } from "gsap"
-import { Flip } from 'gsap/Flip';
-import {useGSAP} from "@gsap/react"
+import Flip from 'gsap/Flip';
+import { useGSAP } from "@gsap/react"
 
 import urls from '../../urls';
 

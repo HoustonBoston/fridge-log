@@ -165,9 +165,30 @@ export class BackendStack extends cdk.Stack {
     fridgeItemsTable.grantReadWriteData(deleteItemDDBFn)
 
     // API Gateway
+    const addCorsGatewayResponses = (api: aws_apigateway.RestApi) => {
+      api.addGatewayResponse(`${api.node.id}Default4xx`, {
+        type: aws_apigateway.ResponseType.DEFAULT_4XX,
+        responseHeaders: {
+          'Access-Control-Allow-Origin': "'*'",
+          'Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+          'Access-Control-Allow-Methods': "'OPTIONS,GET,POST,PUT,DELETE'"
+        }
+      })
+
+      api.addGatewayResponse(`${api.node.id}Default5xx`, {
+        type: aws_apigateway.ResponseType.DEFAULT_5XX,
+        responseHeaders: {
+          'Access-Control-Allow-Origin': "'*'",
+          'Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+          'Access-Control-Allow-Methods': "'OPTIONS,GET,POST,PUT,DELETE'"
+        }
+      })
+    }
+
     const CapturePhotoApi = new aws_apigateway.RestApi(this, 'CapturePhotoApi', {
       restApiName: 'Capture photo API'
     })
+    addCorsGatewayResponses(CapturePhotoApi)
     const captureIntegration = new aws_apigateway.LambdaIntegration(CapturePhotoFn, {proxy: true})
     const capResource = CapturePhotoApi.root.addResource("capturePhoto").addResource("item")  // e.g. /products/item
     capResource.addCorsPreflight({
@@ -180,6 +201,7 @@ export class BackendStack extends cdk.Stack {
     const CheckEmailExistenceApi = new aws_apigateway.RestApi(this, 'CheckEmailExistenceApi', {
       restApiName: 'Check Email Existence API'
     })
+    addCorsGatewayResponses(CheckEmailExistenceApi)
     const checkEmailIntegration = new aws_apigateway.LambdaIntegration(CheckEmailExistenceFn, {proxy: true})
     const checkEmailResource = CheckEmailExistenceApi.root.addResource("checkEmailExistence").addResource("email")
     checkEmailResource.addCorsPreflight({
@@ -192,6 +214,7 @@ export class BackendStack extends cdk.Stack {
     const DeleteItemApi = new aws_apigateway.RestApi(this, 'DeleteItemApi', {
       restApiName: 'Delete Item API'
     })
+    addCorsGatewayResponses(DeleteItemApi)
     const deleteItemIntegration = new aws_apigateway.LambdaIntegration(deleteItemDDBFn, {proxy: true})
     const deleteItemResource = DeleteItemApi.root.addResource("DeleteItem").addResource("item").addResource("{email}")
     deleteItemResource.addCorsPreflight({
@@ -208,6 +231,7 @@ export class BackendStack extends cdk.Stack {
     const GetItemsApi = new aws_apigateway.RestApi(this, 'GetItemsApi', {
       restApiName: 'Read DDB API'
     })
+    addCorsGatewayResponses(GetItemsApi)
     const getItemsIntegration = new aws_apigateway.LambdaIntegration(ReadDDBFn, {proxy: true})
     const getItemsResource = GetItemsApi.root.addResource("ReadFromDDB").addResource("items")
     getItemsResource.addCorsPreflight({
@@ -220,6 +244,7 @@ export class BackendStack extends cdk.Stack {
     const PutItemApi = new aws_apigateway.RestApi(this, 'PutItemApi', {
       restApiName: 'Write to DDB API'
     })
+    addCorsGatewayResponses(PutItemApi)
     const putItemIntegration = new aws_apigateway.LambdaIntegration(writeDDBFn, {proxy: true})
     const putItemResource = PutItemApi.root.addResource("WriteToDDB").addResource("putItem")
     putItemResource.addCorsPreflight({
