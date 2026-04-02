@@ -196,8 +196,8 @@ export default function LaptopPage ()
         const success = await callPutItemApi(item)
         setFabStatus(success ? 'success' : 'error')
         
-        // Reset FAB status back to idle after 1s
-        setTimeout(() => setFabStatus('idle'), 1000)
+        // Reset FAB status back to idle after 1.5s
+        setTimeout(() => setFabStatus('idle'), 1500)
 
         console.log('fridge items after adding item', fridgeItems)
     }
@@ -340,8 +340,8 @@ export default function LaptopPage ()
                     setFabStatus('error')
                 } finally {
                     setIsProcessingPhoto(false)
-                    // Reset status after 1s
-                    setTimeout(() => setFabStatus('idle'), 1000)
+                    // Reset status after 1.5s
+                    setTimeout(() => setFabStatus('idle'), 1500)
                 }
             }
         }
