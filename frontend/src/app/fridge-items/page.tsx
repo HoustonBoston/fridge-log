@@ -329,8 +329,9 @@ export default function LaptopPage ()
                         if (!resJson.answer.includes('not contain')) {
                             setRelevantTexts(resJson.answer)
                             setFabStatus('success')
+                        } else {
+                            setFabStatus('error')
                         }
-                        setFabStatus('error')
                     } else {
                         setFabStatus('error')
                     }
