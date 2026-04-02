@@ -3,8 +3,9 @@ import * as cdk from 'aws-cdk-lib/core';
 import { BackendStack } from '../lib/backend-stack';
 import process from 'process';
 import path from 'path';
+import * as dotenv from 'dotenv';
 
- process.loadEnvFile(path.join(__dirname, '../.env'));
+dotenv.config({ path: path.join(process.cwd(), '../.env') });
 
 const app = new cdk.App();
 new BackendStack(app, 'FridgeLogStack', {

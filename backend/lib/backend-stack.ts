@@ -5,6 +5,8 @@ import { aws_dynamodb, aws_lambda_nodejs, aws_apigateway, aws_events, aws_events
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path from 'path';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import process from 'process';
+import * as dotenv from 'dotenv';
 
 const LAMBDA_PATH = '../lambdas'
 
@@ -18,7 +20,7 @@ const bundlingOptions = {
   forceDockerBundling: false,
 }
 
-process.loadEnvFile(path.join(__dirname, '../.env'));
+dotenv.config({ path: path.join(process.cwd(), '../.env') });
 
 export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
