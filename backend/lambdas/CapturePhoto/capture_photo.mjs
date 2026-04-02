@@ -20,7 +20,7 @@ export const handler = async (event) =>
 
         const response = await model.query({
             image: img,
-            question: "What is the expiry date on this object? Give me the date in USA format (MM/DD/YYYY)."
+            question: "What is the expiry or best before or best by date on this object? Give me the date in USA format (MM/DD/YYYY)."
         })
 
         console.log('response:', JSON.stringify(response))
